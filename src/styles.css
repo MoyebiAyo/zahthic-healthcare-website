@@ -304,14 +304,14 @@ p {
 }
 
 .home-hero::before {
-  background-image: url("./assets/pattern-white.svg");
-  background-position: right -520px top -300px;
+  background-image: url("./assets/pattern-grey.svg");
+  background-position: right -500px top -300px;
   background-repeat: no-repeat;
   background-size: 980px auto;
   content: "";
   inset: 0;
-  mask-image: linear-gradient(105deg, transparent 0%, transparent 42%, rgba(0, 0, 0, 0.08) 68%, rgba(0, 0, 0, 0.28) 100%);
-  opacity: 0.06;
+  mask-image: linear-gradient(105deg, transparent 0%, transparent 38%, rgba(0, 0, 0, 0.18) 66%, rgba(0, 0, 0, 0.52) 100%);
+  opacity: 0.16;
   pointer-events: none;
   position: absolute;
   z-index: 0;
@@ -1497,8 +1497,8 @@ textarea {
   .home-hero::before {
     background-position: right -560px top -180px;
     background-size: 840px auto;
-    mask-image: linear-gradient(160deg, transparent 0%, rgba(0, 0, 0, 0.04) 52%, rgba(0, 0, 0, 0.18) 100%);
-    opacity: 0.05;
+    mask-image: linear-gradient(160deg, transparent 0%, rgba(0, 0, 0, 0.1) 48%, rgba(0, 0, 0, 0.36) 100%);
+    opacity: 0.11;
   }
 
   .home-hero h1 {
