@@ -1508,10 +1508,10 @@ textarea {
   }
 
   .home-hero::before {
-    background-position: left -470px top -180px;
-    background-size: 840px auto;
-    mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.64) 0%, rgba(0, 0, 0, 0.24) 34%, transparent 68%);
-    opacity: 0.18;
+    background-position: left -390px top -170px;
+    background-size: 820px auto;
+    mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.38) 38%, rgba(0, 0, 0, 0.12) 58%, transparent 78%);
+    opacity: 0.28;
   }
 
   :root[data-theme="dark"] .home-hero::before {
