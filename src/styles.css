@@ -1453,6 +1453,38 @@ textarea {
     font-size: 15px;
   }
 
+  .final-cta {
+    gap: 22px;
+    padding-bottom: 64px;
+  }
+
+  .final-cta .button-row {
+    align-items: stretch;
+    display: grid;
+    gap: 10px;
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+    max-width: 240px;
+    width: 100%;
+  }
+
+  .final-cta .button {
+    border-radius: 14px;
+    font-size: 14px;
+    justify-content: center;
+    line-height: 1.15;
+    min-height: 52px;
+    padding: 0 18px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .final-cta .button.secondary.on-dark {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.58);
+    color: rgba(255, 255, 255, 0.94);
+  }
+
   .visual-panel {
     min-height: 310px;
   }
