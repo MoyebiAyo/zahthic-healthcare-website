@@ -7,3 +7,5 @@ dist/
 .graphify_*.json
 .graphify_*.txt
 graphify-out/
+
+.vercel
