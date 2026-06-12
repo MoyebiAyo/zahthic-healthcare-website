@@ -307,7 +307,7 @@ p {
 .home-hero::before {
   background-image: url("./assets/pattern-grey.svg");
   background-position: left -120px top -300px;
-  background-repeat: no-repeat;
+  background-repeat: repeat-y;
   background-size: 980px auto;
   content: "";
   bottom: 0;
