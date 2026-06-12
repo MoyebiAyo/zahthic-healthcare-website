@@ -1211,16 +1211,35 @@ textarea {
 .site-footer {
   background: var(--teal);
   background-image:
-    linear-gradient(135deg, rgba(12, 31, 29, 0.98), rgba(12, 31, 29, 0.9)),
-    url("./assets/pattern-white.svg");
-  background-position: center, right -420px bottom -300px;
+    linear-gradient(135deg, rgba(12, 31, 29, 0.99), rgba(12, 31, 29, 0.94));
+  background-position: center;
   background-repeat: no-repeat;
-  background-size: cover, 1040px auto;
+  background-size: cover;
   color: var(--white);
   display: grid;
   gap: 42px;
   grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.1fr);
+  overflow: hidden;
   padding: 56px clamp(18px, 5vw, 64px);
+  position: relative;
+}
+
+.site-footer::before {
+  background-image: url("./assets/pattern-white.svg");
+  background-position: right -420px bottom -300px;
+  background-repeat: no-repeat;
+  background-size: 1040px auto;
+  content: "";
+  inset: 0;
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.05) 34%, rgba(0, 0, 0, 0.42) 100%);
+  opacity: 0.2;
+  pointer-events: none;
+  position: absolute;
+}
+
+.site-footer > * {
+  position: relative;
+  z-index: 1;
 }
 
 .site-footer p {
@@ -1452,6 +1471,13 @@ textarea {
   .workflow-grid,
   .footer-grid {
     grid-template-columns: 1fr;
+  }
+
+  .site-footer::before {
+    background-position: right -520px bottom -220px;
+    background-size: 940px auto;
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.04) 24%, rgba(0, 0, 0, 0.3) 100%);
+    opacity: 0.14;
   }
 
   .section-header {
