@@ -245,10 +245,10 @@ export const services: Service[] = [
 ];
 
 export const impactStats = [
-  { value: "[00]", label: "Communities served", note: "Replace with verified data" },
-  { value: "[00]", label: "Outreach programs", note: "Replace with verified data" },
-  { value: "[00]", label: "People educated", note: "Replace with verified data" },
-  { value: "[00]", label: "Partners engaged", note: "Replace with verified data" },
+  { value: "10", label: "Care pathways", note: "Services and support routes mapped" },
+  { value: "3", label: "Impact tracks", note: "Community, rehabilitation, and workplace programs" },
+  { value: "3", label: "Education resources", note: "Launch articles prepared" },
+  { value: "6", label: "Partner pathways", note: "Public, NGO, clinical, education, corporate, development" },
 ];
 
 export const projects: Project[] = [

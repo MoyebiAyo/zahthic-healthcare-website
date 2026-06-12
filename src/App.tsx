@@ -440,8 +440,8 @@ function HomePage() {
         </div>
         <VisualPanel image={siteImages.hero} label="Rehabilitation, wellness, and community health in action">
           <div className="floating-proof">
-            <strong>[00]</strong>
-            <span>Verified impact metric</span>
+            <strong>10</strong>
+            <span>Care pathways mapped</span>
           </div>
         </VisualPanel>
       </section>
@@ -536,7 +536,7 @@ function ImpactBand() {
       <div>
         <span className="eyebrow">Measurable impact</span>
         <h2>Building healthier communities through practical action.</h2>
-        <p>Impact numbers remain placeholders until Zahthic supplies verified data and sources.</p>
+        <p>Launch indicators reflect the current service model, project tracks, education resources, and partnership pathways prepared for Zahthic.</p>
       </div>
       <div className="metric-grid">
         {impactStats.map((stat) => (
