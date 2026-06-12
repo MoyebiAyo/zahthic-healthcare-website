@@ -518,7 +518,9 @@ function ServiceCard({ service }: { service: Service }) {
   const Icon = service.icon;
   return (
     <article className="service-card">
-      <img className="service-image" src={service.image.src} alt={service.image.alt} loading="lazy" decoding="async" />
+      <div className="service-image-frame">
+        <img className="service-image" src={service.image.src} alt={service.image.alt} loading="lazy" decoding="async" />
+      </div>
       <div className="card-icon"><Icon size={22} /></div>
       <span>{service.audience}</span>
       <h3>{service.title}</h3>
