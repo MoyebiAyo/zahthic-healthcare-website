@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zahthic Week 4 High-Fidelity Design Board</title>
+  <style>
+    :root {
+      --teal: #0C1F1D;
+      --lime: #98BF2E;
+      --yellow: #EFC652;
+      --black: #0C0E0D;
+      --white: #FFFFFF;
+      --page: #F4F7F2;
+      --soft: #F8FBF6;
+      --line: rgba(12, 31, 29, .14);
+      --muted: #63716c;
+      --shadow: 0 24px 80px rgba(12, 31, 29, .12);
+      --radius: 8px;
+      --font-head: Sora, Montserrat, Arial, sans-serif;
+      --font-body: Montserrat, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--black);
+      font-family: var(--font-body);
+      line-height: 1.55;
+    }
+
+    .board-header {
+      padding: 56px 32px 34px;
+      background: var(--teal);
+      color: var(--white);
+      border-bottom: 6px solid var(--lime);
+    }
+
+    .board-kicker {
+      color: var(--yellow);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0 0 14px;
+    }
+
+    .board-header h1 {
+      font-family: var(--font-head);
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1.04;
+      max-width: 980px;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .board-header p {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: rgba(255,255,255,.78);
+      font-size: 18px;
+    }
+
+    .board {
+      width: min(1480px, calc(100% - 36px));
+      margin: 34px auto 80px;
+      display: grid;
+      gap: 28px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin: 28px 0 4px;
+    }
+
+    .section-title h2 {
+      font-family: var(--font-head);
+      font-size: 30px;
+      line-height: 1.12;
+      margin: 0;
+    }
+
+    .section-title p {
+      max-width: 620px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .frame-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .frame {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .frame-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #edf3ea;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--teal);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .desktop-page {
+      min-height: 860px;
+      background: var(--white);
+    }
+
+    .mobile-page {
+      width: 390px;
+      min-height: 820px;
+      background: var(--white);
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 42px;
+      border-bottom: 1px solid rgba(12,31,29,.08);
+      background: rgba(255,255,255,.94);
+    }
+
+    .mobile-page .site-header {
+      padding: 16px 18px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-head);
+      font-weight: 900;
+      color: var(--teal);
+    }
+
+    .mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--teal);
+      position: relative;
+    }
+
+    .mark::after {
+      content: "";
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      border-radius: 999px;
+      background: var(--lime);
+      right: 4px;
+      top: 4px;
+      box-shadow: -8px 11px 0 var(--yellow);
+    }
+
+    .nav {
+      display: flex;
+      gap: 22px;
+      font-size: 13px;
+      color: #31433d;
+      align-items: center;
+    }
+
+    .mobile-menu {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--teal);
+      font-weight: 900;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: var(--lime);
+      color: var(--teal);
+      font-weight: 900;
+      font-size: 13px;
+      border: 0;
+      text-decoration: none;
+    }
+
+    .btn.dark {
+      background: var(--teal);
+      color: var(--white);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(12,31,29,.18);
+      color: var(--teal);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.02fr .98fr;
+      gap: 40px;
+      padding: 72px 52px 44px;
+      align-items: center;
+    }
+
+    .mobile-page .hero {
+      display: block;
+      padding: 34px 20px 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(152,191,46,.14);
+      color: var(--teal);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 900;
+      margin-bottom: 18px;
+    }
+
+    h2, h3, h4 {
+      font-family: var(--font-head);
+      color: var(--teal);
+      line-height: 1.12;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .hero h2 {
+      font-size: clamp(40px, 4.2vw, 64px);
+      max-width: 720px;
+    }
+
+    .mobile-page .hero h2 {
+      font-size: 34px;
+    }
+
+    .lead {
+      color: #4d615a;
+      font-size: 17px;
+      max-width: 620px;
+      margin: 20px 0 0;
+    }
+
+    .mobile-page .lead {
+      font-size: 15px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .photo-card {
+      min-height: 440px;
+      border-radius: 12px;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(12,31,29,.78), rgba(12,31,29,.12)),
+        linear-gradient(45deg, #dfe9dc, #b6d0ca 42%, #f1dc88);
+      position: relative;
+      border: 1px solid rgba(12,31,29,.16);
+    }
+
+    .mobile-page .photo-card {
+      min-height: 250px;
+      margin-top: 24px;
+    }
+
+    .photo-card::before {
+      content: "Rehabilitation + community health image";
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 24px;
+      color: var(--white);
+      font-family: var(--font-head);
+      font-size: 26px;
+      line-height: 1.1;
+      font-weight: 900;
+      max-width: 360px;
+    }
+
+    .proof-card {
+      position: absolute;
+      right: 22px;
+      top: 22px;
+      width: 178px;
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.6);
+    }
+
+    .proof-card strong {
+      display: block;
+      font-family: var(--font-head);
+      font-size: 27px;
+      color: var(--teal);
+      line-height: 1;
+    }
+
+    .proof-card span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .mobile-page .proof-card {
+      width: 150px;
+      right: 14px;
+      top: 14px;
+    }
+
+    .trust-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: rgba(12,31,29,.08);
+      border-top: 1px solid rgba(12,31,29,.08);
+      border-bottom: 1px solid rgba(12,31,29,.08);
+    }
+
+    .trust-strip div {
+      background: #fbfdf9;
+      padding: 22px 20px;
+      font-weight: 800;
+      color: var(--teal);
+      font-size: 13px;
+    }
+
+    .mobile-page .trust-strip {
+      grid-template-columns: 1fr;
+    }
+
+    .mobile-page .trust-strip div {
+      padding: 14px 20px;
+    }
+
+    .section {
+      padding: 64px 52px;
+    }
+
+    .mobile-page .section {
+      padding: 36px 20px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .section-head h3 {
+      font-size: 34px;
+      max-width: 620px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      max-width: 420px;
+      margin: 0;
+    }
+
+    .mobile-page .section-head {
+      display: block;
+    }
+
+    .mobile-page .section-head h3 {
+      font-size: 26px;
+    }
+
+    .mobile-page .section-head p {
+      margin-top: 12px;
+    }
+
+    .service-grid,
+    .story-grid,
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .mobile-page .service-grid,
+    .mobile-page .story-grid,
+    .mobile-page .blog-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      background: var(--white);
+    }
+
+    .card .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: rgba(152,191,46,.18);
+      display: grid;
+      place-items: center;
+      color: var(--teal);
+      font-weight: 900;
+      margin-bottom: 18px;
+    }
+
+    .card h4 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .impact-band {
+      background: var(--teal);
+      color: var(--white);
+      padding: 54px 52px;
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 34px;
+      align-items: center;
+    }
+
+    .mobile-page .impact-band {
+      display: block;
+      padding: 36px 20px;
+    }
+
+    .impact-band h3 {
+      color: var(--white);
+      font-size: 34px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .mobile-page .metric-grid {
+      grid-template-columns: repeat(2, 1fr);
+      margin-top: 24px;
+    }
+
+    .metric {
+      padding: 18px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+    .metric strong {
+      display: block;
+      font-family: var(--font-head);
+      color: var(--yellow);
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 8px;
+      color: rgba(255,255,255,.75);
+      font-size: 12px;
+    }
+
+    .feature-story {
+      display: grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: 26px;
+      align-items: stretch;
+      background: #f7faf4;
+    }
+
+    .mobile-page .feature-story {
+      display: block;
+    }
+
+    .story-image {
+      min-height: 330px;
+      border-radius: 10px;
+      background:
+        linear-gradient(135deg, rgba(12,31,29,.25), rgba(152,191,46,.18)),
+        linear-gradient(45deg, #e6eedf, #c9d8c4);
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .story-image::after {
+      content: "Community outreach photography";
+      position: absolute;
+      left: 22px;
+      bottom: 22px;
+      right: 22px;
+      font-family: var(--font-head);
+      font-size: 22px;
+      color: var(--teal);
+      font-weight: 900;
+    }
+
+    .story-copy {
+      padding: 34px 0;
+    }
+
+    .mobile-page .story-copy {
+      padding: 24px 0 0;
+    }
+
+    .story-copy h3 {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .story-copy p {
+      color: var(--muted);
+    }
+
+    .initiative {
+      background: var(--teal);
+      color: var(--white);
+      border-radius: 0;
+      padding: 54px 52px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 34px;
+    }
+
+    .mobile-page .initiative {
+      display: block;
+      padding: 36px 20px;
+    }
+
+    .initiative h3 {
+      color: var(--white);
+      font-size: 42px;
+    }
+
+    .initiative p {
+      color: rgba(255,255,255,.78);
+    }
+
+    .steps {
+      display: grid;
+      gap: 10px;
+    }
+
+    .step {
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      font-weight: 800;
+    }
+
+    .page-hero {
+      padding: 58px 52px 40px;
+      background: var(--teal);
+      color: var(--white);
+    }
+
+    .mobile-page .page-hero {
+      padding: 38px 20px 28px;
+    }
+
+    .page-hero h2 {
+      color: var(--white);
+      font-size: 44px;
+      max-width: 780px;
+    }
+
+    .mobile-page .page-hero h2 {
+      font-size: 31px;
+    }
+
+    .page-hero p {
+      color: rgba(255,255,255,.78);
+      max-width: 680px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    .tab {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--white);
+    }
+
+    .tab.active {
+      background: var(--teal);
+      color: var(--white);
+    }
+
+    .image-thumb {
+      height: 150px;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(12,31,29,.28), rgba(239,198,82,.2)),
+        linear-gradient(45deg, #e9eee5, #c9ded5);
+      margin-bottom: 14px;
+    }
+
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .mobile-page .logo-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .logo-tile {
+      height: 82px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      background: #fbfdf9;
+    }
+
+    .form-panel {
+      border: 1px solid var(--line);
+      background: var(--white);
+      border-radius: 12px;
+      padding: 24px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      min-height: 46px;
+      border: 1px solid rgba(12,31,29,.18);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      background: #fbfdf9;
+    }
+
+    .dark-frame .desktop-page,
+    .dark-frame .mobile-page {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .dark-frame .site-header {
+      background: #101815;
+      border-color: rgba(255,255,255,.12);
+    }
+
+    .dark-frame .logo,
+    .dark-frame h2,
+    .dark-frame h3,
+    .dark-frame h4 {
+      color: var(--white);
+    }
+
+    .dark-frame .card,
+    .dark-frame .tab,
+    .dark-frame .form-panel,
+    .dark-frame .logo-tile {
+      background: #14231f;
+      border-color: rgba(255,255,255,.12);
+      color: var(--white);
+    }
+
+    .dark-frame .lead,
+    .dark-frame .card p,
+    .dark-frame .section-head p,
+    .dark-frame .story-copy p {
+      color: rgba(255,255,255,.68);
+    }
+
+    .admin-shell {
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      min-height: 620px;
+      background: #f6f8f5;
+    }
+
+    .sidebar {
+      background: var(--teal);
+      color: var(--white);
+      padding: 22px;
+    }
+
+    .side-link {
+      padding: 11px 12px;
+      border-radius: 8px;
+      margin-top: 6px;
+      color: rgba(255,255,255,.75);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .side-link.active {
+      background: rgba(255,255,255,.12);
+      color: var(--white);
+    }
+
+    .admin-main {
+      padding: 28px;
+    }
+
+    .admin-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .status {
+      display: inline-flex;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(152,191,46,.16);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .table-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-row {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr .6fr .5fr;
+      gap: 12px;
+      padding: 14px 16px;
+      border-top: 1px solid rgba(12,31,29,.08);
+      font-size: 13px;
+      align-items: center;
+    }
+
+    .table-row:first-child {
+      border-top: 0;
+      background: #edf3ea;
+      font-weight: 900;
+      color: var(--teal);
+    }
+
+    @media (max-width: 1100px) {
+      .frame-row {
+        grid-template-columns: 1fr;
+      }
+
+      .mobile-page {
+        width: 100%;
+      }
+
+      .hero,
+      .impact-band,
+      .feature-story,
+      .initiative {
+        grid-template-columns: 1fr;
+      }
+
+      .trust-strip,
+      .service-grid,
+      .story-grid,
+      .blog-grid,
+      .metric-grid,
+      .logo-grid,
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="board-header">
+    <p class="board-kicker">Week 4 High-Fidelity Design Board</p>
+    <h1>Zahthic Healthcare Solutions</h1>
+    <p>Premium healthcare, rehabilitation, wellness, prevention, and community impact design system. The direction is trust-first, human, African-impact-oriented, and intentionally not hospital-generic.</p>
+  </header>
+
+  <main class="board">
+    <div class="section-title">
+      <h2>Home Page</h2>
+      <p>Hero, trust strip, services, impact, project storytelling, SPACE Project, partner/blog previews, and conversion CTAs.</p>
+    </div>
+
+    <section class="frame-row">
+      <div class="frame">
+        <div class="frame-label"><span>Desktop home</span><span>1440 concept</span></div>
+        <div class="desktop-page">
+          <div class="site-header">
+            <div class="logo"><span class="mark"></span><span>Zahthic</span></div>
+            <nav class="nav">
+              <span>About</span><span>Services</span><span>Impact</span><span>SPACE</span><span>Blog</span><span>Contact</span>
+              <a class="btn" href="#">Book Consultation</a>
+            </nav>
+          </div>
+
+          <section class="hero">
+            <div>
+              <span class="eyebrow">Healthcare. Rehabilitation. Prevention. Community Impact.</span>
+              <h2>Bridging the Gap Between Prevention, Treatment and Rehabilitation.</h2>
+              <p class="lead">Zahthic helps individuals, families, organizations, and communities access rehabilitation, preventive healthcare, wellness education, and long-term support for better health outcomes.</p>
+              <div class="cta-row">
+                <a class="btn" href="#">Book Consultation</a>
+                <a class="btn ghost" href="#">Partner With Us</a>
+              </div>
+            </div>
+            <div class="photo-card">
+              <div class="proof-card"><strong>[00]</strong><span>Verified impact metric placeholder</span></div>
+            </div>
+          </section>
+
+          <div class="trust-strip">
+            <div>Rehabilitation-focused care</div>
+            <div>Community-centered programs</div>
+            <div>Prevention education</div>
+            <div>Home and workplace support</div>
+            <div>Impact-driven outreach</div>
+          </div>
+
+          <section class="section">
+            <div class="section-head">
+              <h3>Integrated services for recovery, prevention, and lifelong wellbeing.</h3>
+              <p>Service discovery is calm and practical, focused on the user's next step rather than hospital departments.</p>
+            </div>
+            <div class="service-grid">
+              <article class="card"><div class="icon">01</div><h4>Physiotherapy</h4><p>Personalized rehabilitation to improve movement, reduce pain, and restore everyday function.</p></article>
+              <article class="card"><div class="icon">02</div><h4>Neurorehabilitation</h4><p>Specialized support for movement, balance, coordination, and daily independence.</p></article>
+              <article class="card"><div class="icon">03</div><h4>Corporate Wellness</h4><p>Programs that help organizations improve employee wellbeing and prevent avoidable strain.</p></article>
+            </div>
+          </section>
+
+          <section class="impact-band">
+            <div>
+              <span class="eyebrow">Measurable impact</span>
+              <h3>Building healthier communities through practical action.</h3>
+            </div>
+            <div class="metric-grid">
+              <div class="metric"><strong>[00]</strong><span>Communities served</span></div>
+              <div class="metric"><strong>[00]</strong><span>Outreach programs</span></div>
+              <div class="metric"><strong>[00]</strong><span>People educated</span></div>
+              <div class="metric"><strong>[00]</strong><span>Partners engaged</span></div>
+            </div>
+          </section>
+
+          <section class="section feature-story">
+            <div class="story-image"></div>
+            <div class="story-copy">
+              <span class="eyebrow">Featured project</span>
+              <h3>Community health work presented as human-centered proof.</h3>
+              <p>Project stories combine location, activity, verified metrics, photos, and beneficiary narratives to show impact with dignity.</p>
+              <a class="btn dark" href="#">Explore Impact</a>
+            </div>
+          </section>
+
+          <section class="initiative">
+            <div>
+              <span class="eyebrow">Flagship initiative</span>
+              <h3>The SPACE Project</h3>
+              <p>A scalable platform for prevention, rehabilitation, education, outreach, and partnership-led community health impact.</p>
+            </div>
+            <div class="steps">
+              <div class="step">Vision</div>
+              <div class="step">Objectives</div>
+              <div class="step">Activities</div>
+              <div class="step">Partnership Opportunities</div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame-label"><span>Mobile home</span><span>390 concept</span></div>
+        <div class="mobile-page">
+          <div class="site-header">
+            <div class="logo"><span class="mark"></span><span>Zahthic</span></div>
+            <div class="mobile-menu">=</div>
+          </div>
+          <section class="hero">
+            <span class="eyebrow">Healthcare. Rehabilitation. Prevention.</span>
+            <h2>Bridging the Gap Between Prevention, Treatment and Rehabilitation.</h2>
+            <p class="lead">Support for recovery, prevention, wellness education, and long-term wellbeing.</p>
+            <div class="cta-row">
+              <a class="btn" href="#">Book Consultation</a>
+              <a class="btn ghost" href="#">Partner</a>
+            </div>
+            <div class="photo-card"><div class="proof-card"><strong>[00]</strong><span>Verified metric</span></div></div>
+          </section>
+          <div class="trust-strip">
+            <div>Rehabilitation-focused care</div>
+            <div>Community-centered programs</div>
+            <div>Prevention education</div>
+          </div>
+          <section class="section">
+            <div class="section-head">
+              <h3>Services for recovery and lifelong wellbeing.</h3>
+              <p>Single-column cards keep the mobile path simple.</p>
+            </div>
+            <div class="service-grid">
+              <article class="card"><div class="icon">01</div><h4>Physiotherapy</h4><p>Movement, pain relief, and functional recovery.</p></article>
+              <article class="card"><div class="icon">02</div><h4>Home Care</h4><p>Rehabilitation support in the comfort of home.</p></article>
+              <article class="card"><div class="icon">03</div><h4>Outreach</h4><p>Health education and support closer to communities.</p></article>
+            </div>
+          </section>
+          <section class="impact-band">
+            <h3>Impact that can be verified.</h3>
+            <div class="metric-grid">
+              <div class="metric"><strong>[00]</strong><span>Communities</span></div>
+              <div class="metric"><strong>[00]</strong><span>Programs</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <h2>Core Page Family</h2>
+      <p>Internal pages share the same hero language but shift content density by purpose: editorial, service discovery, impact reporting, initiative storytelling, or conversion forms.</p>
+    </div>
+
+    <section class="frame-row">
+      <div class="frame">
+        <div class="frame-label"><span>Services / impact desktop</span><span>CMS driven</span></div>
+        <div class="desktop-page">
+          <section class="page-hero">
+            <span class="eyebrow">Our Services</span>
+            <h2>Care designed for recovery, prevention, wellness, and long-term function.</h2>
+            <p>Zahthic provides integrated healthcare services that support people at home, at work, in recovery, and within their communities.</p>
+          </section>
+          <section class="section">
+            <div class="tabs">
+              <span class="tab active">All</span><span class="tab">Rehabilitation</span><span class="tab">Wellness</span><span class="tab">Community</span><span class="tab">Corporate</span>
+            </div>
+            <div class="service-grid">
+              <article class="card"><div class="icon">PT</div><h4>Physiotherapy</h4><p>Personalized rehabilitation to improve movement and confidence.</p></article>
+              <article class="card"><div class="icon">NR</div><h4>Neurorehabilitation</h4><p>Specialized support for neurological recovery and function.</p></article>
+              <article class="card"><div class="icon">SR</div><h4>Stroke Rehabilitation</h4><p>Structured support for strength, balance, mobility, and daily living.</p></article>
+              <article class="card"><div class="icon">HC</div><h4>Home Care Physiotherapy</h4><p>Professional care delivered in a familiar home environment.</p></article>
+              <article class="card"><div class="icon">CW</div><h4>Corporate Wellness</h4><p>Programs for healthier workplace habits and prevention.</p></article>
+              <article class="card"><div class="icon">OR</div><h4>Outreach Programs</h4><p>Community education and rehabilitation awareness initiatives.</p></article>
+            </div>
+          </section>
+          <section class="section feature-story">
+            <div class="story-image"></div>
+            <div class="story-copy">
+              <span class="eyebrow">Projects & Impact</span>
+              <h3>Impact pages feel like a credible annual report, not a campaign flyer.</h3>
+              <p>Every project card supports a real story: challenge, location, activities, partners, outcomes, gallery, and next action.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame-label"><span>Internal mobile</span><span>page stack</span></div>
+        <div class="mobile-page">
+          <section class="page-hero">
+            <span class="eyebrow">Projects & Impact</span>
+            <h2>Healthcare impact that reaches people and communities.</h2>
+            <p>Practical, accessible, and connected to real community needs.</p>
+          </section>
+          <section class="section">
+            <div class="tabs"><span class="tab active">All</span><span class="tab">Outreach</span><span class="tab">Reports</span></div>
+            <article class="card">
+              <div class="image-thumb"></div>
+              <h4>Community Health Awareness Program</h4>
+              <p>Location, date, verified metric, and beneficiary story preview.</p>
+            </article>
+            <article class="card" style="margin-top:12px">
+              <div class="image-thumb"></div>
+              <h4>Rehabilitation Campaign</h4>
+              <p>Campaign activity, partners, lessons learned, and next action.</p>
+            </article>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <h2>CMS Components</h2>
+      <p>Reusable content blocks for blog, media, partners, recognition, testimonials, support, and forms.</p>
+    </div>
+
+    <section class="frame">
+      <div class="frame-label"><span>Reusable CMS sections</span><span>desktop</span></div>
+      <div class="desktop-page">
+        <section class="section">
+          <div class="section-head">
+            <h3>Latest insights from rehabilitation, wellness, and community health.</h3>
+            <p>Image-led blog cards use category, date, author/source, and short educational excerpts.</p>
+          </div>
+          <div class="blog-grid">
+            <article class="card"><div class="image-thumb"></div><span class="eyebrow">Rehabilitation Tips</span><h4>What families should know about stroke recovery</h4><p>Clear health education content with medical disclaimer support.</p></article>
+            <article class="card"><div class="image-thumb"></div><span class="eyebrow">Corporate Wellness</span><h4>Workplace habits that reduce avoidable strain</h4><p>Practical wellness education for organizations.</p></article>
+            <article class="card"><div class="image-thumb"></div><span class="eyebrow">Community Updates</span><h4>Building healthier communities through outreach</h4><p>Project updates connected to impact reporting.</p></article>
+          </div>
+        </section>
+
+        <section class="section" style="background:#f7faf4">
+          <div class="section-head">
+            <h3>Partners and collaborators.</h3>
+            <p>Logo placeholders stay neutral until approved partner logos are supplied.</p>
+          </div>
+          <div class="logo-grid">
+            <div class="logo-tile">Logo</div><div class="logo-tile">Logo</div><div class="logo-tile">Logo</div><div class="logo-tile">Logo</div><div class="logo-tile">Logo</div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <h3>Contact and booking forms.</h3>
+            <p>Forms are calm, one-column, and plain-language. They collect service needs without asking users to self-diagnose.</p>
+          </div>
+          <div class="form-panel">
+            <div class="field">Full name</div>
+            <div class="field">Phone / WhatsApp</div>
+            <div class="field">Service needed</div>
+            <div class="field">Brief description of concern or support need</div>
+            <a class="btn" href="#">Submit Request</a>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <h2>Dark Mode And Admin</h2>
+      <p>Dark mode feels premium and focused. Admin surfaces use the same brand tokens with higher density and clearer status states.</p>
+    </div>
+
+    <section class="frame-row">
+      <div class="frame dark-frame">
+        <div class="frame-label"><span>Dark mode public surface</span><span>premium mode</span></div>
+        <div class="desktop-page">
+          <div class="site-header">
+            <div class="logo"><span class="mark"></span><span>Zahthic</span></div>
+            <nav class="nav"><span>Services</span><span>Impact</span><span>SPACE</span><a class="btn" href="#">Book Consultation</a></nav>
+          </div>
+          <section class="hero">
+            <div>
+              <span class="eyebrow">Dark mode</span>
+              <h2>Premium, calm, and readable without losing warmth.</h2>
+              <p class="lead">Dark surfaces are strongest for hero bands, impact highlights, SPACE Project, media, spotlight, and footer moments.</p>
+              <div class="cta-row"><a class="btn" href="#">Book Consultation</a><a class="btn ghost" href="#" style="color:#fff;border-color:rgba(255,255,255,.2)">Partner With Us</a></div>
+            </div>
+            <div class="photo-card"></div>
+          </section>
+          <section class="section">
+            <div class="service-grid">
+              <article class="card"><div class="icon">01</div><h4>Readable cards</h4><p>Dark cards need borders and clear text contrast.</p></article>
+              <article class="card"><div class="icon">02</div><h4>Lime action</h4><p>Lime stays the primary action color, never neon.</p></article>
+              <article class="card"><div class="icon">03</div><h4>Yellow focus</h4><p>Pearl Yellow carries warmth and focus states.</p></article>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame-label"><span>Admin CMS</span><span>dashboard concept</span></div>
+        <div class="desktop-page admin-shell">
+          <aside class="sidebar">
+            <div class="logo" style="color:#fff"><span class="mark"></span><span>Zahthic Admin</span></div>
+            <div class="side-link active">Overview</div>
+            <div class="side-link">Blog Posts</div>
+            <div class="side-link">Services</div>
+            <div class="side-link">Projects</div>
+            <div class="side-link">Media</div>
+            <div class="side-link">Forms</div>
+            <div class="side-link">Settings</div>
+          </aside>
+          <section class="admin-main">
+            <div class="admin-top">
+              <div>
+                <h3>Content Overview</h3>
+                <p style="margin:6px 0 0;color:var(--muted)">Manage CMS-driven public website content.</p>
+              </div>
+              <a class="btn" href="#">Create New</a>
+            </div>
+            <div class="admin-grid">
+              <article class="card"><h4>24</h4><p>Published articles</p></article>
+              <article class="card"><h4>10</h4><p>Service pages</p></article>
+              <article class="card"><h4>08</h4><p>Project stories</p></article>
+            </div>
+            <div class="table-card">
+              <div class="table-row"><span>Title</span><span>Type</span><span>Status</span><span>Action</span></div>
+              <div class="table-row"><span>Stroke Recovery Guide</span><span>Blog</span><span class="status">Draft</span><span>Edit</span></div>
+              <div class="table-row"><span>Community Outreach</span><span>Project</span><span class="status">Published</span><span>Edit</span></div>
+              <div class="table-row"><span>Corporate Wellness</span><span>Service</span><span class="status">Published</span><span>Edit</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
