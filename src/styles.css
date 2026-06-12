@@ -311,14 +311,23 @@ p {
   background-size: 980px auto;
   content: "";
   bottom: 0;
+  filter: contrast(1.08);
   left: calc((100vw - min(1440px, 100vw)) / -2);
-  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.48) 0%, rgba(0, 0, 0, 0.2) 26%, rgba(0, 0, 0, 0.06) 42%, transparent 58%);
-  opacity: 0.1;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.74) 0%, rgba(0, 0, 0, 0.36) 27%, rgba(0, 0, 0, 0.12) 46%, transparent 66%);
+  mix-blend-mode: multiply;
+  opacity: 0.2;
   pointer-events: none;
   position: absolute;
   right: 0;
   top: 0;
   z-index: 0;
+}
+
+:root[data-theme="dark"] .home-hero::before {
+  filter: none;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.48) 0%, rgba(0, 0, 0, 0.2) 26%, rgba(0, 0, 0, 0.06) 42%, transparent 58%);
+  mix-blend-mode: normal;
+  opacity: 0.1;
 }
 
 .home-hero > * {
@@ -1501,6 +1510,11 @@ textarea {
   .home-hero::before {
     background-position: left -470px top -180px;
     background-size: 840px auto;
+    mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.64) 0%, rgba(0, 0, 0, 0.24) 34%, transparent 68%);
+    opacity: 0.18;
+  }
+
+  :root[data-theme="dark"] .home-hero::before {
     mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.1) 34%, transparent 62%);
     opacity: 0.08;
   }
