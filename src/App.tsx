@@ -636,7 +636,7 @@ function FinalCta() {
       <p>Whether you need rehabilitation support, workplace wellness guidance, community health collaboration, or an impact-driven healthcare partner, Zahthic is ready to help.</p>
       <div className="button-row">
         <a className="button primary" href="#/contact">Book Consultation</a>
-        <a className="button secondary" href="#/partners">Partner With Us</a>
+        <a className="button secondary on-dark" href="#/partners">Partner With Us</a>
       </div>
     </section>
   );

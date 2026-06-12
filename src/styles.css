@@ -268,6 +268,19 @@ p {
   color: var(--text);
 }
 
+.button.secondary.on-dark {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.42);
+  color: var(--white);
+}
+
+.button.secondary.on-dark:focus,
+.button.secondary.on-dark:hover {
+  background: var(--white);
+  border-color: var(--white);
+  color: var(--teal);
+}
+
 .button.compact {
   min-height: 42px;
   padding-inline: 16px;
