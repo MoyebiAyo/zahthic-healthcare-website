@@ -965,7 +965,6 @@ function SpacePage() {
     <>
       <section className="page-hero space-page-hero">
         <SpaceLogo />
-        <span className="eyebrow">The SPACE Project</span>
         <h1>Spinal Protection and Awareness for Children's Ergonomics (SPACE)</h1>
         <p>SPACE is the flagship preventive health initiative of Zahthic Healthcare Solutions.</p>
       </section>
