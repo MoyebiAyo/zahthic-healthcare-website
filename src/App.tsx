@@ -657,10 +657,10 @@ function SpaceFeature() {
       <div>
         <span className="eyebrow">Flagship initiative</span>
         <h2>The SPACE Project</h2>
-        <p>A scalable platform for prevention, rehabilitation, education, outreach, and partnership-led community health impact.</p>
+        <p>A preventive health initiative protecting the spinal and musculoskeletal health of children and adolescents through education, early intervention, research, and community engagement.</p>
       </div>
       <div className="step-list">
-        {["Vision", "Objectives", "Activities", "Gallery", "Impact", "Partnership Opportunities"].map((item) => (
+        {["Education", "Early Intervention", "Research", "Community Engagement", "Child & Adolescent Health", "Partnership Opportunities"].map((item) => (
           <a href="#/space" key={item}>{item}</a>
         ))}
       </div>
@@ -917,17 +917,18 @@ function SpacePage() {
   const { cms } = useCms();
   return (
     <>
-      <PageHero eyebrow="Flagship Initiative" title="The SPACE Project" body="A scalable community health initiative connecting prevention, rehabilitation, education, outreach, and partnerships." />
+      <PageHero eyebrow="Flagship Initiative" title="The SPACE Project" body="SPACE is a preventive health initiative dedicated to protecting the spinal and musculoskeletal health of children and adolescents through education, early intervention, research, and community engagement." />
       <section className="content-section feature-split">
         <div>
-          <span className="eyebrow">Future-ready impact</span>
-          <h2>A platform for structured community health transformation.</h2>
-          <p>The full meaning of SPACE should be confirmed before launch. Until confirmed, the site treats it as the proper initiative name.</p>
+          <span className="eyebrow">Preventive health for young people</span>
+          <h2>Protecting spinal and musculoskeletal health before problems become lifelong limitations.</h2>
+          <p>SPACE focuses on children and adolescents because posture, movement habits, school ergonomics, early pain patterns, and musculoskeletal awareness can shape long-term health, confidence, and quality of life.</p>
+          <p>Through education, early intervention, research, and community engagement, the initiative helps families, schools, communities, and partners identify risks early and support healthier development.</p>
         </div>
         <div className="feature-stack">
           <MediaImage image={cms.siteImages.space} variant="feature" />
           <div className="step-list light">
-            {["Increase rehabilitation awareness", "Promote preventive healthcare", "Build community partnerships", "Document measurable impact"].map((item) => <span key={item}>{item}</span>)}
+            {["Spinal health education", "Musculoskeletal screening and early intervention", "School and community engagement", "Research and evidence-informed prevention"].map((item) => <span key={item}>{item}</span>)}
           </div>
         </div>
       </section>
