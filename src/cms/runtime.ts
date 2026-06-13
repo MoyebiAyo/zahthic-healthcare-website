@@ -33,8 +33,8 @@ import type { ImageAsset } from "../content";
 
 export const CMS_STORAGE_KEY = "zahthic-cms-content-v2";
 export const ADMIN_SESSION_KEY = "zahthic-admin-session";
-export const ADMIN_USERNAME = "admin";
-export const ADMIN_PASSWORD = "ZahthicAdmin2026!";
+export const ADMIN_USERNAME = "Healthyzeeceo";
+export const ADMIN_PASSWORD = "LeaveZahthic360";
 
 export type EditableService = {
   slug: string;

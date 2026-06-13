@@ -1668,7 +1668,7 @@ function AdminPage() {
             </label>
             <button className="button primary" type="submit">Login</button>
             {loginError && <p className="form-status error" role="alert">{loginError}</p>}
-            <p className="admin-helper">Default setup login: admin / ZahthicAdmin2026! Replace with a real backend auth provider before handling sensitive live records.</p>
+            <p className="admin-helper">Authorized Zahthic administrators only. Keep login details private and update credentials through the project configuration when needed.</p>
           </form>
         </section>
       </>
