@@ -89,6 +89,31 @@ const routeLabels: Record<string, string> = {
   "/admin": "Admin",
 };
 
+const serviceDivisions = [
+  {
+    description: "Our rehabilitation services are designed to support recovery, restore function, reduce pain, improve mobility, and help individuals regain independence and participation in daily life.",
+    iconName: "Activity",
+    intro: "Helping individuals recover function, independence, mobility, and quality of life through evidence-based rehabilitation.",
+    title: "Rehabilitation Services",
+  },
+  {
+    description: "We provide workplace health solutions that promote employee wellbeing, reduce preventable injuries, improve productivity, and encourage healthier workplace practices.",
+    iconName: "BriefcaseBusiness",
+    intro: "Helping organizations build healthier, safer, and more productive work environments.",
+    title: "Workplace Health & Wellness",
+  },
+  {
+    description: "We work with communities, institutions, development partners, and stakeholders to improve health awareness, expand rehabilitation access, promote prevention, and strengthen community wellbeing.",
+    iconName: "HandHeart",
+    intro: "Expanding access to healthcare, rehabilitation, prevention, and health education beyond traditional healthcare settings.",
+    title: "Community Health & Development",
+  },
+];
+
+function servicesForDivision(services: EditableService[], division: string) {
+  return services.filter((service) => service.published && service.division === division);
+}
+
 function getRoute() {
   const hash = window.location.hash.replace("#", "");
   return hash || "/";
@@ -452,7 +477,6 @@ function SectionHeader({ eyebrow, title, body }: { eyebrow?: string; title: stri
 
 function HomePage() {
   const { cms } = useCms();
-  const featuredServices = cms.services.filter((service) => service.published && service.featured).slice(0, 6);
   return (
     <>
       <section className="home-hero">
@@ -492,7 +516,7 @@ function HomePage() {
           <a className="text-link" href="#/about">Learn about Zahthic <ArrowRight size={16} /></a>
         </div>
       </section>
-      <ServicesPreview services={featuredServices.length ? featuredServices : cms.services.filter((service) => service.published).slice(0, 6)} />
+      <ServicesPreview />
       <ImpactBand />
       <ProjectFeature />
       <SpaceFeature />
@@ -528,23 +552,47 @@ function VisualPanel({ label, image, children }: { label: string; image?: ImageA
   );
 }
 
-function ServicesPreview({ services }: { services: EditableService[] }) {
+function ServicesPreview() {
+  const { cms } = useCms();
   return (
     <section className="content-section">
       <SectionHeader
         eyebrow="Services"
-        title="Integrated services for recovery, prevention, and lifelong wellbeing."
-        body="Designed for individuals, families, organizations, and communities across the health journey."
+        title="Three focused divisions for rehabilitation, workplace wellness, and community health."
+        body="Zahthic's service architecture reflects a rehabilitation-led healthcare solutions organization, not a traditional hospital clinic."
       />
-      <div className="card-grid service-grid">
-        {services.slice(0, 6).map((service) => (
-          <ServiceCard key={service.slug} service={service} />
+      <div className="division-grid">
+        {serviceDivisions.map((division) => (
+          <ServiceDivisionCard
+            division={division}
+            key={division.title}
+            services={servicesForDivision(cms.services, division.title)}
+          />
         ))}
       </div>
       <a className="button secondary section-action" href="#/services">
         View all services <ArrowRight size={18} />
       </a>
     </section>
+  );
+}
+
+function ServiceDivisionCard({ division, services }: { division: (typeof serviceDivisions)[number]; services: EditableService[] }) {
+  const Icon = getIcon(division.iconName);
+  return (
+    <article className="division-card">
+      <div className="card-icon"><Icon size={24} /></div>
+      <span>{division.title}</span>
+      <h3>{division.intro}</h3>
+      <p>{division.description}</p>
+      <div className="division-service-list">
+        {services.map((service) => (
+          <a key={service.slug} href={`#/services/${service.slug}`}>
+            {service.title} <ArrowRight size={14} />
+          </a>
+        ))}
+      </div>
+    </article>
   );
 }
 
@@ -699,6 +747,22 @@ function AboutPage() {
           <p>Founded by PT Cosmas Harrison Ifeanyichukwu, Zahthic reflects a commitment to expanding access to rehabilitation, preventive healthcare, wellness, and community-centered support across Nigeria.</p>
         </div>
       </section>
+      <section className="content-section founder-section">
+        <div>
+          <span className="eyebrow">Meet the Founder</span>
+          <h2>PT Cosmas Harrison Ifeanyichukwu, BMR (PT)</h2>
+          <p>PT Cosmas Harrison Ifeanyichukwu, BMR (PT) is a physiotherapist, healthcare advocate, and the Founder & Clinical Director of Zahthic Healthcare Solutions.</p>
+          <p>Driven by a passion for rehabilitation, prevention, and community health, he founded Zahthic to address a critical gap in healthcare: the disconnect between treatment, recovery, and long-term wellbeing.</p>
+          <p>Through patient-centered rehabilitation, health education, community outreach, and innovative healthcare initiatives, he is committed to expanding access to quality healthcare services and empowering individuals and communities to achieve better health outcomes.</p>
+        </div>
+        <aside>
+          <blockquote>"Healthcare should not stop at treatment. It should restore function, preserve independence, and improve quality of life."</blockquote>
+          <div>
+            <span className="eyebrow">Founder Mission Statement</span>
+            <p>To advance accessible rehabilitation, preventive healthcare, wellness, and community health solutions that empower people to live healthier, more independent, and more meaningful lives.</p>
+          </div>
+        </aside>
+      </section>
       <section className="content-section value-grid">
         {["Compassion", "Excellence", "Innovation", "Accessibility", "Sustainability", "Integrity", "Impact"].map((value) => (
           <article className="value-card" key={value}>
@@ -713,16 +777,24 @@ function AboutPage() {
 
 function ServicesPage() {
   const { cms } = useCms();
-  const visibleServices = cms.services.filter((service) => service.published);
   return (
     <>
-      <PageHero eyebrow="Our Services" title="Care designed for recovery, prevention, wellness, and long-term function." body="Integrated healthcare services supporting people at home, at work, in recovery, and within their communities." />
+      <PageHero eyebrow="Our Services" title="Service architecture for Zahthic Healthcare Solutions." body="To improve clarity, professionalism, and brand positioning, Zahthic groups its work into three core divisions rather than a long list of standalone services." />
       <section className="content-section">
-        <div className="filter-row" aria-label="Service categories">
-          {["All", "Rehabilitation", "Wellness", "Community", "Corporate"].map((filter) => <span key={filter}>{filter}</span>)}
-        </div>
-        <div className="card-grid service-grid">
-          {visibleServices.map((service) => <ServiceCard key={service.slug} service={service} />)}
+        <SectionHeader
+          eyebrow="Rehabilitation-led healthcare solutions"
+          title="Three divisions that reflect Zahthic's identity and impact."
+          body="Each division keeps related services together so visitors quickly understand where their need fits."
+        />
+        <div className="division-stack">
+          {serviceDivisions.map((division) => (
+            <section className="division-section" key={division.title}>
+              <ServiceDivisionCard division={division} services={servicesForDivision(cms.services, division.title)} />
+              <div className="card-grid service-grid">
+                {servicesForDivision(cms.services, division.title).map((service) => <ServiceCard key={service.slug} service={service} />)}
+              </div>
+            </section>
+          ))}
         </div>
       </section>
       <FinalCta />
@@ -1547,7 +1619,7 @@ function AdminPage() {
           </div>
           <div className="admin-tools">
             {activeSection === "brand" && <BrandEditor cms={cms} onSave={updateCms} />}
-            {activeSection === "services" && <CollectionEditor title="Services" items={cms.services} onSave={(items) => updateCms({ ...cms, services: items }, "Services saved.")} createItem={() => ({ audience: "Audience", body: "", featured: false, iconName: "Activity", image: cms.siteImages.hero, published: true, slug: "new-service", summary: "Service summary", title: "New Service" })} renderItem={(item, index, update) => <ServiceFields item={item} update={update} index={index} />} />}
+            {activeSection === "services" && <CollectionEditor title="Services" items={cms.services} onSave={(items) => updateCms({ ...cms, services: items }, "Services saved.")} createItem={() => ({ audience: "Rehabilitation Services", body: "", division: "Rehabilitation Services", featured: false, iconName: "Activity", image: cms.siteImages.hero, published: true, slug: "new-service", summary: "Service summary", title: "New Service" })} renderItem={(item, index, update) => <ServiceFields item={item} update={update} index={index} />} />}
             {activeSection === "projects" && <CollectionEditor title="Projects & Impact" items={cms.projects} onSave={(items) => updateCms({ ...cms, projects: items }, "Projects saved.")} createItem={() => ({ category: "Impact Story", gallery: [], image: cms.siteImages.outreach, location: "Imo State", metric: "Metric pending", published: true, summary: "Project summary", title: "New Project" })} renderItem={(item, index, update) => <ProjectFields item={item} update={update} index={index} />} />}
             {activeSection === "articles" && <CollectionEditor title="Blog Posts" items={cms.articles} onSave={(items) => updateCms({ ...cms, articles: items }, "Blog saved.")} createItem={() => ({ author: "Zahthic Healthcare Solutions", body: "Article body", category: "Health Articles", excerpt: "Article excerpt", image: cms.siteImages.about, published: false, publishedAt: new Date().toISOString().slice(0, 10), readTime: "5 min read", title: "New Article" })} renderItem={(item, index, update) => <ArticleFields item={item} update={update} index={index} />} />}
             {activeSection === "media" && <CollectionEditor title="Media Library" items={cms.mediaItems} onSave={(items) => updateCms({ ...cms, mediaItems: items }, "Media saved.")} createItem={() => ({ description: "Media description", fileUrl: "", image: cms.siteImages.outreach, published: true, title: "New Media Item", type: "Photo" })} renderItem={(item, index, update) => <MediaFields item={item} update={update} index={index} />} />}
@@ -1695,6 +1767,7 @@ function ServiceFields({ item, update }: { item: EditableService; index: number;
     <>
       <TextField label="Title" value={item.title} onChange={(title) => update({ ...item, title, slug: item.slug || slugify(title) })} />
       <TextField label="Slug" value={item.slug} onChange={(slug) => update({ ...item, slug: slugify(slug) })} />
+      <SelectField label="Division" value={item.division} options={serviceDivisions.map((division) => division.title)} onChange={(division) => update({ ...item, division, audience: division })} />
       <TextField label="Audience" value={item.audience} onChange={(audience) => update({ ...item, audience })} />
       <SelectField label="Icon" value={item.iconName} options={iconOptions} onChange={(iconName) => update({ ...item, iconName })} />
       <TextField label="Summary" value={item.summary} multiline onChange={(summary) => update({ ...item, summary })} />

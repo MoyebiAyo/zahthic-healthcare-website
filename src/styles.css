@@ -593,6 +593,78 @@ p {
   min-height: 270px;
 }
 
+.division-grid,
+.division-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.division-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.division-stack {
+  gap: 34px;
+}
+
+.division-section {
+  display: grid;
+  gap: 18px;
+}
+
+.division-card {
+  background:
+    linear-gradient(135deg, rgba(12, 31, 29, 0.04), transparent 54%),
+    var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 24px;
+}
+
+.division-card > span {
+  color: var(--lime);
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.division-card h3 {
+  font-size: clamp(20px, 2vw, 28px);
+  margin-bottom: 14px;
+}
+
+.division-card p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.division-service-list {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.division-service-list a {
+  align-items: center;
+  color: var(--text);
+  display: flex;
+  font-size: 14px;
+  font-weight: 900;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.division-service-list a:hover {
+  color: var(--lime);
+}
+
 .service-image-frame {
   aspect-ratio: 16 / 9;
   border-radius: calc(var(--radius) - 2px);
@@ -689,6 +761,61 @@ p {
 
 .section-action {
   margin-top: 24px;
+}
+
+.founder-section {
+  align-items: start;
+  display: grid;
+  gap: clamp(24px, 5vw, 70px);
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+}
+
+.founder-section p {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.founder-section aside {
+  background: var(--teal);
+  border-radius: var(--radius);
+  color: var(--white);
+  display: grid;
+  gap: 24px;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 42px);
+  position: relative;
+}
+
+.founder-section aside::before {
+  background-image: url("./assets/pattern-white.svg");
+  background-position: right -360px bottom -280px;
+  background-repeat: no-repeat;
+  background-size: 860px auto;
+  content: "";
+  inset: 0;
+  opacity: 0.1;
+  pointer-events: none;
+  position: absolute;
+}
+
+.founder-section aside > * {
+  position: relative;
+  z-index: 1;
+}
+
+.founder-section blockquote {
+  color: var(--yellow);
+  font-family: Sora, Montserrat, Arial, sans-serif;
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 900;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.founder-section aside p {
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 0;
 }
 
 .impact-band,
@@ -1607,6 +1734,7 @@ textarea {
   .home-hero,
   .two-column,
   .feature-split,
+  .founder-section,
   .form-layout,
   .impact-band,
   .space-feature,
@@ -1623,6 +1751,7 @@ textarea {
 
   .card-grid,
   .service-grid,
+  .division-grid,
   .metric-grid,
     .admin-summary,
     .logo-grid,
@@ -1733,6 +1862,7 @@ textarea {
   .trust-strip,
   .card-grid,
   .service-grid,
+  .division-grid,
   .metric-grid,
   .admin-summary,
   .editor-grid,
