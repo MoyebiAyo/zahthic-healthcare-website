@@ -964,7 +964,7 @@ function SpacePage() {
   return (
     <>
       <section className="page-hero space-page-hero">
-        <SpaceLogo />
+        <SpaceLogo variant="dark" />
         <h1>Spinal Protection and Awareness for Children's Ergonomics (SPACE)</h1>
         <p>SPACE is the flagship preventive health initiative of Zahthic Healthcare Solutions.</p>
       </section>
