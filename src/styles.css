@@ -1089,7 +1089,9 @@ textarea {
   color: var(--text);
   font: inherit;
   min-height: 46px;
+  min-width: 0;
   padding: 12px 13px;
+  width: 100%;
 }
 
 textarea {
@@ -1152,9 +1154,25 @@ textarea {
   padding: 11px 12px;
 }
 
+.admin-sidebar button {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  color: rgba(255, 255, 255, 0.74);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 11px 12px;
+  text-align: left;
+}
+
 .admin-sidebar a.active,
 .admin-sidebar a:focus,
-.admin-sidebar a:hover {
+.admin-sidebar a:hover,
+.admin-sidebar button.active,
+.admin-sidebar button:focus,
+.admin-sidebar button:hover {
   background: rgba(255, 255, 255, 0.11);
   color: var(--white);
 }
@@ -1194,12 +1212,38 @@ textarea {
   margin-top: 18px;
 }
 
+.admin-login-wrap {
+  margin: 0 auto;
+  max-width: 620px;
+  padding: clamp(32px, 5vw, 64px) clamp(18px, 5vw, 64px);
+}
+
+.admin-login-card {
+  width: 100%;
+}
+
+.admin-helper {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+
+.admin-notice {
+  margin-bottom: 16px;
+}
+
 .admin-panel {
   background: var(--surface-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   min-width: 0;
   padding: 18px;
+}
+
+.admin-panel h4 {
+  margin: 22px 0 12px;
 }
 
 .admin-panel-head {
@@ -1257,6 +1301,120 @@ textarea {
   gap: 18px;
   grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
   min-width: 0;
+}
+
+.editor-list {
+  display: grid;
+  gap: 14px;
+}
+
+.editor-list.compact-list {
+  gap: 18px;
+}
+
+.editor-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.editor-item summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  list-style: none;
+  padding: 14px 16px;
+}
+
+.editor-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-item summary span {
+  color: var(--text);
+  font-weight: 900;
+}
+
+.editor-item summary small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.editor-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 16px;
+}
+
+.editor-grid > .image-field,
+.editor-grid > label:has(textarea),
+.editor-grid > .editor-actions {
+  grid-column: 1 / -1;
+}
+
+.editor-actions {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.toggle-field {
+  align-items: center;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  min-height: 46px;
+  padding: 12px 13px;
+}
+
+.toggle-field input {
+  min-height: auto;
+  width: auto;
+}
+
+.image-field {
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 14px;
+}
+
+.image-field img {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  grid-column: 1 / -1;
+  max-height: 220px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.file-button {
+  cursor: pointer;
+  justify-content: center;
+  text-align: center;
+}
+
+.file-button input {
+  display: none;
+}
+
+.form-status.error {
+  background: rgba(180, 35, 24, 0.12);
+  border-color: rgba(180, 35, 24, 0.22);
+  color: #b42318;
 }
 
 .schema-fields {
@@ -1577,6 +1735,8 @@ textarea {
   .service-grid,
   .metric-grid,
   .admin-summary,
+  .editor-grid,
+  .image-field,
   .logo-grid,
   .value-grid,
   .workflow-grid,

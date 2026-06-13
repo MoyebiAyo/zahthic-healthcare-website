@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import {
   ArrowRight,
@@ -18,23 +18,23 @@ import {
   X,
 } from "lucide-react";
 import { cmsSchemas } from "./cms/schemas";
+import {
+  ADMIN_PASSWORD,
+  ADMIN_SESSION_KEY,
+  ADMIN_USERNAME,
+  CMS_STORAGE_KEY,
+  getDefaultCmsContent,
+  getIcon,
+  iconOptions,
+  readCmsContent,
+  resetCmsContent,
+  writeCmsContent,
+} from "./cms/runtime";
+import type { CmsContent, EditableArticle, EditableMediaItem, EditablePartnerCategory, EditableProject, EditableRecognitionItem, EditableService } from "./cms/runtime";
 import logoDark from "./assets/zahthic-logo-2.svg";
 import logoLight from "./assets/zahthic-logo-1.svg";
-import {
-  articles,
-  brand,
-  contactOptions,
-  faqs,
-  impactStats,
-  mediaItems,
-  navItems,
-  partnerCategories,
-  projects,
-  recognitionItems,
-  services,
-  siteImages,
-} from "./content";
-import type { Article, ImageAsset, Project, Service } from "./content";
+import { navItems } from "./content";
+import type { ImageAsset } from "./content";
 
 type Theme = "light" | "dark";
 type FormKind = "contact" | "partner" | "career" | "support" | "newsletter" | "chat";
@@ -60,6 +60,10 @@ const CRM_STORAGE_KEY = "zahthic-crm-submissions";
 const ANALYTICS_STORAGE_KEY = "zahthic-analytics-events";
 const WHATSAPP_NUMBER = "2347033362935";
 const HAS_WHATSAPP_NUMBER = Boolean(WHATSAPP_NUMBER.trim());
+const CmsContext = createContext<{
+  cms: CmsContent;
+  setCms: (content: CmsContent) => void;
+} | null>(null);
 
 declare global {
   interface Window {
@@ -154,20 +158,28 @@ function buildWhatsAppUrl(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER.trim()}?text=${encodeURIComponent(message)}`;
 }
 
-function getSeoForRoute(route: string) {
+function useCms() {
+  const value = useContext(CmsContext);
+  if (!value) throw new Error("CMS context is unavailable.");
+  return value;
+}
+
+function getSeoForRoute(route: string, cms: CmsContent) {
   const path = getRoutePath(route);
   const [section, detailSlug] = path.split("/").filter(Boolean);
+  const customSeo = cms.seoRecords.find((record) => record.path === path);
+  if (customSeo) return { title: customSeo.title, description: customSeo.description, ogImage: customSeo.ogImage };
   const fallback = {
     description: "Premium rehabilitation, prevention, wellness, healthcare education, and community impact support in Imo State, Nigeria.",
     title: "Zahthic Healthcare Solutions",
   };
 
   if (section === "services" && detailSlug) {
-    const item = services.find((service) => service.slug === detailSlug);
+    const item = cms.services.find((service) => service.published && service.slug === detailSlug);
     if (item) return { title: `${item.title} | Zahthic Healthcare Solutions`, description: item.summary };
   }
   if (section === "blog" && detailSlug) {
-    const item = articles.find((article) => slugify(article.title) === detailSlug);
+    const item = cms.articles.find((article) => article.published && slugify(article.title) === detailSlug);
     if (item) return { title: `${item.title} | Zahthic Insights`, description: item.excerpt };
   }
   const label = routeLabels[path];
@@ -189,7 +201,13 @@ export function App() {
   const [route, setRoute] = useState(getRoute());
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem("zahthic-theme") as Theme) || "light");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cms, setCmsState] = useState<CmsContent>(() => readCmsContent());
   const mainRef = useRef<HTMLElement>(null);
+
+  function setCms(content: CmsContent) {
+    setCmsState(content);
+    writeCmsContent(content);
+  }
 
   useEffect(() => {
     const onHashChange = () => {
@@ -207,16 +225,27 @@ export function App() {
   }, [theme]);
 
   useEffect(() => {
-    const seo = getSeoForRoute(route);
+    const seo = getSeoForRoute(route, cms);
     document.title = seo.title;
     upsertMeta("description", seo.description);
     upsertMeta("og:title", seo.title, true);
     upsertMeta("og:description", seo.description, true);
     upsertMeta("og:type", "website", true);
+    if (seo.ogImage) upsertMeta("og:image", seo.ogImage, true);
     upsertMeta("twitter:card", "summary_large_image");
     trackEvent("page_view", route, { title: seo.title });
     mainRef.current?.focus({ preventScroll: true });
-  }, [route]);
+  }, [route, cms]);
+
+  useEffect(() => {
+    const syncCms = () => setCmsState(readCmsContent());
+    window.addEventListener("zahthic:cms", syncCms);
+    window.addEventListener("storage", syncCms);
+    return () => {
+      window.removeEventListener("zahthic:cms", syncCms);
+      window.removeEventListener("storage", syncCms);
+    };
+  }, []);
 
   const page = useMemo(() => {
     const path = getRoutePath(route);
@@ -224,27 +253,27 @@ export function App() {
     const legacyServiceSlug = section === "services" && !detailSlug ? getQueryParam(route, "service") : "";
 
     if (section === "services" && (detailSlug || legacyServiceSlug)) {
-      const service = services.find((item) => item.slug === (detailSlug || legacyServiceSlug));
+      const service = cms.services.find((item) => item.published && item.slug === (detailSlug || legacyServiceSlug));
       return service ? <ServiceDetailPage service={service} /> : <NotFoundPage />;
     }
 
     if (section === "impact" && detailSlug) {
-      const project = projects.find((item) => slugify(item.title) === detailSlug);
+      const project = cms.projects.find((item) => item.published && slugify(item.title) === detailSlug);
       return project ? <ProjectDetailPage project={project} /> : <NotFoundPage />;
     }
 
     if (section === "blog" && detailSlug) {
-      const article = articles.find((item) => slugify(item.title) === detailSlug);
+      const article = cms.articles.find((item) => item.published && slugify(item.title) === detailSlug);
       return article ? <ArticleDetailPage article={article} /> : <NotFoundPage />;
     }
 
     if (section === "media" && detailSlug) {
-      const item = mediaItems.find((entry) => slugify(entry.title) === detailSlug);
+      const item = cms.mediaItems.find((entry) => entry.published && slugify(entry.title) === detailSlug);
       return item ? <MediaDetailPage item={item} /> : <NotFoundPage />;
     }
 
     if (section === "recognition" && detailSlug) {
-      const item = recognitionItems.find((entry) => slugify(entry.title) === detailSlug);
+      const item = cms.recognitionItems.find((entry) => entry.published && slugify(entry.title) === detailSlug);
       return item ? <RecognitionDetailPage item={item} /> : <NotFoundPage />;
     }
 
@@ -280,22 +309,24 @@ export function App() {
       default:
         return <HomePage />;
     }
-  }, [route]);
+  }, [route, cms]);
 
   return (
-    <div className="site-shell">
-      <a className="skip-link" href="#main-content">Skip to content</a>
-      <Header
-        route={route}
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        theme={theme}
-        setTheme={setTheme}
-      />
-      <main id="main-content" ref={mainRef} tabIndex={-1}>{page}</main>
-      <Footer />
-      <ChatWidget />
-    </div>
+    <CmsContext.Provider value={{ cms, setCms }}>
+      <div className="site-shell">
+        <a className="skip-link" href="#main-content">Skip to content</a>
+        <Header
+          route={route}
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          theme={theme}
+          setTheme={setTheme}
+        />
+        <main id="main-content" ref={mainRef} tabIndex={-1}>{page}</main>
+        <Footer />
+        <ChatWidget />
+      </div>
+    </CmsContext.Provider>
   );
 }
 
@@ -353,13 +384,14 @@ function Header({
 }
 
 function Footer() {
+  const { cms } = useCms();
   return (
     <footer className="site-footer">
       <div>
         <a className="brand-lockup footer-brand" href="#/">
           <BrandLogo variant="dark" />
         </a>
-        <p>{brand.tagline}</p>
+        <p>{cms.brand.tagline}</p>
       </div>
       <div className="footer-grid">
         <FooterLinks title="Explore" links={[["About", "#/about"], ["Services", "#/services"], ["Impact", "#/impact"], ["Blog", "#/blog"]]} />
@@ -419,13 +451,15 @@ function SectionHeader({ eyebrow, title, body }: { eyebrow?: string; title: stri
 }
 
 function HomePage() {
+  const { cms } = useCms();
+  const featuredServices = cms.services.filter((service) => service.published && service.featured).slice(0, 6);
   return (
     <>
       <section className="home-hero">
         <div className="hero-copy">
           <span className="eyebrow">Healthcare. Rehabilitation. Prevention. Community Impact.</span>
-          <h1>{brand.tagline}</h1>
-          <p className="hero-support">{brand.supporting}</p>
+          <h1>{cms.brand.tagline}</h1>
+          <p className="hero-support">{cms.brand.supporting}</p>
           <p>
             Zahthic helps individuals, families, organizations, and communities access rehabilitation, preventive healthcare, wellness education, and long-term support for better health outcomes.
           </p>
@@ -438,7 +472,7 @@ function HomePage() {
             </a>
           </div>
         </div>
-        <VisualPanel image={siteImages.hero} label="Rehabilitation, wellness, and community health in action">
+        <VisualPanel image={cms.siteImages.hero} label="Rehabilitation, wellness, and community health in action">
           <div className="floating-proof">
             <strong>10</strong>
             <span>Care pathways mapped</span>
@@ -458,7 +492,7 @@ function HomePage() {
           <a className="text-link" href="#/about">Learn about Zahthic <ArrowRight size={16} /></a>
         </div>
       </section>
-      <ServicesPreview />
+      <ServicesPreview services={featuredServices.length ? featuredServices : cms.services.filter((service) => service.published).slice(0, 6)} />
       <ImpactBand />
       <ProjectFeature />
       <SpaceFeature />
@@ -494,7 +528,7 @@ function VisualPanel({ label, image, children }: { label: string; image?: ImageA
   );
 }
 
-function ServicesPreview() {
+function ServicesPreview({ services }: { services: EditableService[] }) {
   return (
     <section className="content-section">
       <SectionHeader
@@ -514,8 +548,8 @@ function ServicesPreview() {
   );
 }
 
-function ServiceCard({ service }: { service: Service }) {
-  const Icon = service.icon;
+function ServiceCard({ service }: { service: EditableService }) {
+  const Icon = getIcon(service.iconName);
   return (
     <article className="service-card">
       <div className="service-image-frame">
@@ -533,6 +567,7 @@ function ServiceCard({ service }: { service: Service }) {
 }
 
 function ImpactBand() {
+  const { cms } = useCms();
   return (
     <section className="impact-band">
       <div>
@@ -541,7 +576,7 @@ function ImpactBand() {
         <p>Launch indicators reflect the current service model, project tracks, education resources, and partnership pathways prepared for Zahthic.</p>
       </div>
       <div className="metric-grid">
-        {impactStats.map((stat) => (
+        {cms.impactStats.map((stat) => (
           <article className="metric-card" key={stat.label}>
             <strong>{stat.value}</strong>
             <span>{stat.label}</span>
@@ -554,9 +589,10 @@ function ImpactBand() {
 }
 
 function ProjectFeature() {
+  const { cms } = useCms();
   return (
     <section className="content-section feature-split">
-      <VisualPanel image={siteImages.outreach} label="Community outreach and prevention education in action" />
+      <VisualPanel image={cms.siteImages.outreach} label="Community outreach and prevention education in action" />
       <div>
         <span className="eyebrow">Featured project</span>
         <h2>Community impact stories with dignity, evidence, and context.</h2>
@@ -585,11 +621,13 @@ function SpaceFeature() {
 }
 
 function BlogPreview() {
+  const { cms } = useCms();
+  const visibleArticles = cms.articles.filter((article) => article.published);
   return (
     <section className="content-section">
       <SectionHeader eyebrow="Insights" title="Latest insights from rehabilitation, wellness, and community health." body="Practical education for healthier lives and stronger communities." />
       <div className="card-grid">
-        {articles.map((article) => (
+        {visibleArticles.map((article) => (
           <BlogCard key={article.title} article={article} />
         ))}
       </div>
@@ -597,7 +635,7 @@ function BlogPreview() {
   );
 }
 
-function BlogCard({ article }: { article: Article }) {
+function BlogCard({ article }: { article: EditableArticle }) {
   return (
     <article className="blog-card">
       <MediaImage image={article.image} />
@@ -613,12 +651,14 @@ function BlogCard({ article }: { article: Article }) {
 }
 
 function PartnerPreview() {
+  const { cms } = useCms();
+  const visiblePartners = cms.partnerCategories.filter((partner) => partner.published);
   return (
     <section className="content-section partner-preview">
       <SectionHeader eyebrow="Partners" title="Partnerships that expand access to better health." body="Logo placeholders remain neutral until approved partner assets are supplied." />
       <div className="logo-grid">
-        {partnerCategories.map((partner) => {
-          const Icon = partner.icon;
+        {visiblePartners.map((partner) => {
+          const Icon = getIcon(partner.iconName);
           return (
             <article className="logo-tile" key={partner.title}>
               <Icon size={24} />
@@ -645,13 +685,14 @@ function FinalCta() {
 }
 
 function AboutPage() {
+  const { cms } = useCms();
   return (
     <>
       <PageHero eyebrow="About Zahthic" title="Transforming health through rehabilitation, prevention, wellness, and community impact." body="Zahthic was built on the belief that healthcare should not end at treatment." />
       <section className="content-section two-column">
         <div>
           <h2>From clinical care to a broader healthcare movement.</h2>
-          <MediaImage image={siteImages.about} variant="wide" />
+          <MediaImage image={cms.siteImages.about} variant="wide" />
         </div>
         <div>
           <p>Zahthic began with a strong foundation in physiotherapy and rehabilitation. Over time, that foundation expanded into a wider vision: a healthcare solutions organization that supports recovery, promotes prevention, strengthens communities, and creates practical pathways to long-term wellbeing.</p>
@@ -671,6 +712,8 @@ function AboutPage() {
 }
 
 function ServicesPage() {
+  const { cms } = useCms();
+  const visibleServices = cms.services.filter((service) => service.published);
   return (
     <>
       <PageHero eyebrow="Our Services" title="Care designed for recovery, prevention, wellness, and long-term function." body="Integrated healthcare services supporting people at home, at work, in recovery, and within their communities." />
@@ -679,7 +722,7 @@ function ServicesPage() {
           {["All", "Rehabilitation", "Wellness", "Community", "Corporate"].map((filter) => <span key={filter}>{filter}</span>)}
         </div>
         <div className="card-grid service-grid">
-          {services.map((service) => <ServiceCard key={service.slug} service={service} />)}
+          {visibleServices.map((service) => <ServiceCard key={service.slug} service={service} />)}
         </div>
       </section>
       <FinalCta />
@@ -687,8 +730,8 @@ function ServicesPage() {
   );
 }
 
-function ServiceDetailPage({ service }: { service: Service }) {
-  const Icon = service.icon;
+function ServiceDetailPage({ service }: { service: EditableService }) {
+  const Icon = getIcon(service.iconName);
   return (
     <>
       <PageHero eyebrow={service.audience} title={service.title} body={service.summary} />
@@ -715,16 +758,18 @@ function ServiceDetailPage({ service }: { service: Service }) {
 }
 
 function ImpactPage() {
+  const { cms } = useCms();
+  const visibleProjects = cms.projects.filter((project) => project.published);
   return (
     <>
       <PageHero eyebrow="Projects & Impact" title="Healthcare impact that reaches people, families, workplaces, and communities." body="Zahthic's impact work expands access to rehabilitation, prevention, wellness education, and community-centered care." />
       <ImpactBand />
-      <ProjectList projects={projects} />
+      <ProjectList projects={visibleProjects} />
     </>
   );
 }
 
-function ProjectDetailPage({ project }: { project: Project }) {
+function ProjectDetailPage({ project }: { project: EditableProject }) {
   return (
     <>
       <PageHero eyebrow={project.category} title={project.title} body={project.summary} />
@@ -748,7 +793,7 @@ function ProjectDetailPage({ project }: { project: Project }) {
   );
 }
 
-function ProjectList({ projects }: { projects: Project[] }) {
+function ProjectList({ projects }: { projects: EditableProject[] }) {
   return (
     <section className="content-section">
       <SectionHeader title="Project stories" body="Each project can be managed through the CMS with location, gallery, metrics, partners, and beneficiary stories." />
@@ -770,7 +815,7 @@ function ProjectList({ projects }: { projects: Project[] }) {
   );
 }
 
-function ArticleDetailPage({ article }: { article: Article }) {
+function ArticleDetailPage({ article }: { article: EditableArticle }) {
   return (
     <>
       <PageHero eyebrow={article.category} title={article.title} body={article.excerpt} />
@@ -779,7 +824,7 @@ function ArticleDetailPage({ article }: { article: Article }) {
         <article className="detail-copy">
           <span className="eyebrow">{article.readTime}</span>
           <h2>Article outline</h2>
-          <p>{article.excerpt}</p>
+          <p>{article.body || article.excerpt}</p>
           <div className="detail-list">
             <span>Why this matters for families and communities</span>
             <span>Practical steps readers can apply</span>
@@ -797,6 +842,7 @@ function ArticleDetailPage({ article }: { article: Article }) {
 }
 
 function SpacePage() {
+  const { cms } = useCms();
   return (
     <>
       <PageHero eyebrow="Flagship Initiative" title="The SPACE Project" body="A scalable community health initiative connecting prevention, rehabilitation, education, outreach, and partnerships." />
@@ -807,7 +853,7 @@ function SpacePage() {
           <p>The full meaning of SPACE should be confirmed before launch. Until confirmed, the site treats it as the proper initiative name.</p>
         </div>
         <div className="feature-stack">
-          <MediaImage image={siteImages.space} variant="feature" />
+          <MediaImage image={cms.siteImages.space} variant="feature" />
           <div className="step-list light">
             {["Increase rehabilitation awareness", "Promote preventive healthcare", "Build community partnerships", "Document measurable impact"].map((item) => <span key={item}>{item}</span>)}
           </div>
@@ -818,11 +864,12 @@ function SpacePage() {
 }
 
 function PartnersPage() {
+  const { cms } = useCms();
   return (
     <>
       <PageHero eyebrow="Partners & Collaborators" title="Partnerships that expand access to better health." body="Zahthic works with organizations and institutions committed to accessible healthcare, rehabilitation, prevention, wellness, and community transformation." />
       <section className="content-section feature-split">
-        <MediaImage image={siteImages.partners} variant="feature" />
+        <MediaImage image={cms.siteImages.partners} variant="feature" />
         <div>
           <span className="eyebrow">Collaboration</span>
           <h2>Built for institutions, communities, and organizations that want health access to go further.</h2>
@@ -851,9 +898,11 @@ function BlogPage() {
 }
 
 function MediaPage() {
+  const { cms } = useCms();
   const [activeType, setActiveType] = useState("All");
   const filters = ["All", "Photo", "Video", "Publication", "Press Release", "Download"];
-  const visibleItems = activeType === "All" ? mediaItems : mediaItems.filter((item) => item.type === activeType);
+  const publishedMedia = cms.mediaItems.filter((item) => item.published);
+  const visibleItems = activeType === "All" ? publishedMedia : publishedMedia.filter((item) => item.type === activeType);
   return (
     <>
       <PageHero eyebrow="Media Center" title="Stories, updates, and resources from Zahthic's work." body="Photo gallery, video gallery, publications, press releases, magazine features, and downloads." />
@@ -881,7 +930,7 @@ function MediaPage() {
   );
 }
 
-function MediaDetailPage({ item }: { item: (typeof mediaItems)[number] }) {
+function MediaDetailPage({ item }: { item: EditableMediaItem }) {
   return (
     <>
       <PageHero eyebrow="Media Center" title={item.title} body={item.description} />
@@ -906,17 +955,19 @@ function MediaDetailPage({ item }: { item: (typeof mediaItems)[number] }) {
 }
 
 function RecognitionPage() {
+  const { cms } = useCms();
+  const visibleItems = cms.recognitionItems.filter((item) => item.published);
   return (
     <>
       <PageHero eyebrow="Recognition & Spotlight" title="Celebrating people and partnerships advancing health impact." body="A dynamic space for distinguished personalities, healthcare champions, strategic partners, award recipients, and special recognitions." />
       <section className="content-section">
         <div className="card-grid">
-          {recognitionItems.map((item) => (
+          {visibleItems.map((item) => (
             <article className="project-card" key={item.title}>
               <MediaImage image={item.image} />
               <span>Spotlight</span>
               <h3>{item.title}</h3>
-              <p>CMS-managed spotlight content with image, summary, category, and publishing status.</p>
+              <p>{item.summary}</p>
               <a href={`#/recognition/${slugify(item.title)}`} className="text-link">
                 View spotlight <ArrowRight size={15} />
               </a>
@@ -928,7 +979,7 @@ function RecognitionPage() {
   );
 }
 
-function RecognitionDetailPage({ item }: { item: (typeof recognitionItems)[number] }) {
+function RecognitionDetailPage({ item }: { item: EditableRecognitionItem }) {
   return (
     <>
       <PageHero eyebrow="Recognition & Spotlight" title={item.title} body="A CMS-ready spotlight page for approved people, partners, award recipients, and healthcare champions." />
@@ -936,7 +987,7 @@ function RecognitionDetailPage({ item }: { item: (typeof recognitionItems)[numbe
         <MediaImage image={item.image} variant="feature" />
         <div className="detail-copy">
           <h2>Spotlight profile</h2>
-          <p>This page is prepared for approved biography, recognition notes, partnership context, and publishing status once Zahthic supplies final content.</p>
+          <p>{item.summary}</p>
           <div className="detail-list">
             <span>Profile image and summary</span>
             <span>Recognition category</span>
@@ -1022,11 +1073,13 @@ function SupportPage() {
 }
 
 function FaqPage() {
+  const { cms } = useCms();
+  const visibleFaqs = cms.faqs.filter((faq) => faq.published);
   return (
     <>
       <PageHero eyebrow="Frequently Asked Questions" title="Answers to help you take the next step with confidence." body="Find quick answers about Zahthic's services, consultations, community programs, partnerships, volunteering, and support." />
       <section className="content-section faq-list">
-        {faqs.map((faq) => (
+        {visibleFaqs.map((faq) => (
           <details key={faq.question}>
             <summary>{faq.question}</summary>
             <p>{faq.answer}</p>
@@ -1055,12 +1108,14 @@ function TestimonialsPage() {
 }
 
 function ContactPage() {
+  const { cms } = useCms();
+  const visibleOptions = cms.contactOptions.filter((option) => option.published);
   return (
     <>
       <PageHero eyebrow="Contact Zahthic" title="Let us help you take the next step." body="For rehabilitation support, home care, workplace wellness, outreach, partnerships, volunteering, or media information, the Zahthic team is ready to respond." />
       <section className="content-section card-grid">
-        {contactOptions.map((option) => {
-          const Icon = option.icon;
+        {visibleOptions.map((option) => {
+          const Icon = getIcon(option.iconName);
           return (
             <article className="service-card" key={option.title}>
               <div className="card-icon"><Icon size={22} /></div>
@@ -1340,10 +1395,13 @@ function ChatWidget() {
 }
 
 function AdminPage() {
+  const { cms, setCms } = useCms();
+  const [loggedIn, setLoggedIn] = useState(() => sessionStorage.getItem(ADMIN_SESSION_KEY) === "active");
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>(() => getStoredJson<SubmissionRecord[]>(CRM_STORAGE_KEY, []));
   const [events, setEvents] = useState<AnalyticsEvent[]>(() => getStoredJson<AnalyticsEvent[]>(ANALYTICS_STORAGE_KEY, []));
-  const selectedSchema = getQueryParam(getRoute(), "schema") || cmsSchemas[0]?.name;
-  const activeSchema = cmsSchemas.find((schema) => schema.name === selectedSchema) || cmsSchemas[0];
+  const [activeSection, setActiveSection] = useState("brand");
+  const [loginError, setLoginError] = useState("");
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     const sync = () => {
@@ -1360,6 +1418,25 @@ function AdminPage() {
     };
   }, []);
 
+  function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(event.currentTarget).entries()) as Record<string, string>;
+    if (data.username === ADMIN_USERNAME && data.password === ADMIN_PASSWORD) {
+      sessionStorage.setItem(ADMIN_SESSION_KEY, "active");
+      setLoggedIn(true);
+      setLoginError("");
+      trackEvent("admin_login_success", getRoute());
+      return;
+    }
+    setLoginError("Invalid admin login.");
+    trackEvent("admin_login_failed", getRoute());
+  }
+
+  function updateCms(next: CmsContent, message = "Saved.") {
+    setCms({ ...next, updatedAt: new Date().toISOString() });
+    setNotice(message);
+  }
+
   function clearDemoData() {
     localStorage.removeItem(CRM_STORAGE_KEY);
     localStorage.removeItem(ANALYTICS_STORAGE_KEY);
@@ -1367,21 +1444,96 @@ function AdminPage() {
     setEvents([]);
   }
 
+  function exportCms() {
+    const blob = new Blob([JSON.stringify(cms, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `zahthic-cms-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setNotice("CMS export downloaded.");
+  }
+
+  async function importCms(file: File) {
+    const text = await file.text();
+    const parsed = JSON.parse(text) as CmsContent;
+    updateCms(parsed, "CMS import applied.");
+  }
+
+  if (!loggedIn) {
+    return (
+      <>
+        <PageHero eyebrow="Admin Login" title="Secure website management for Zahthic." body="Sign in to manage content, figures, services, blogs, media, SEO, CRM records, and publishing controls." />
+        <section className="admin-login-wrap">
+          <form className="form-card admin-login-card" onSubmit={handleLogin}>
+            <label>
+              Username
+              <input name="username" autoComplete="username" placeholder="admin" />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" autoComplete="current-password" placeholder="Admin password" />
+            </label>
+            <button className="button primary" type="submit">Login</button>
+            {loginError && <p className="form-status error" role="alert">{loginError}</p>}
+            <p className="admin-helper">Default setup login: admin / ZahthicAdmin2026! Replace with a real backend auth provider before handling sensitive live records.</p>
+          </form>
+        </section>
+      </>
+    );
+  }
+
   const newCount = submissions.filter((item) => item.status === "new").length;
+  const sections = [
+    ["brand", "Brand & Homepage"],
+    ["services", "Services"],
+    ["projects", "Projects & Impact"],
+    ["articles", "Blog"],
+    ["media", "Media"],
+    ["recognition", "Recognition"],
+    ["partners", "Partners"],
+    ["faqs", "FAQ"],
+    ["contact", "Contact Options"],
+    ["seo", "SEO"],
+    ["crm", "CRM & Analytics"],
+    ["schemas", "CMS Schemas"],
+    ["settings", "Settings"],
+  ];
 
   return (
     <>
-      <PageHero eyebrow="Admin / CMS Preview" title="Content, CRM, analytics, and publishing controls." body="This dashboard shows CMS schemas, captured form records, newsletter leads, route analytics, and Week 6 integration readiness." />
+      <PageHero eyebrow="Admin Dashboard" title="Edit the Zahthic website from one control room." body="Manage brand content, figures, blogs, SEO, services, media, public pages, CRM records, and publishing controls." />
       <section className="admin-shell">
         <aside className="admin-sidebar">
-          {cmsSchemas.map((schema, index) => (
-            <a href={`#/admin?schema=${schema.name}`} className={activeSchema.name === schema.name || (!selectedSchema && index === 0) ? "active" : ""} key={schema.name}>
-              {schema.label}
-            </a>
+          {sections.map(([key, label]) => (
+            <button type="button" className={activeSection === key ? "active" : ""} key={key} onClick={() => setActiveSection(key)}>
+              {label}
+            </button>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.removeItem(ADMIN_SESSION_KEY);
+              setLoggedIn(false);
+            }}
+          >
+            Logout
+          </button>
         </aside>
         <div className="admin-main">
+          {notice && <p className="form-status admin-notice" role="status">{notice}</p>}
           <div className="admin-summary">
+            <article className="metric-card admin-card">
+              <strong>{cms.services.filter((item) => item.published).length}</strong>
+              <span>Live services</span>
+              <small>{cms.services.length} total records</small>
+            </article>
+            <article className="metric-card admin-card">
+              <strong>{cms.articles.filter((item) => item.published).length}</strong>
+              <span>Published blog posts</span>
+              <small>{cms.articles.length} total records</small>
+            </article>
             <article className="metric-card admin-card">
               <strong>{submissions.length}</strong>
               <span>CRM records</span>
@@ -1392,63 +1544,357 @@ function AdminPage() {
               <span>Analytics events</span>
               <small>Local event layer active</small>
             </article>
-            <article className="metric-card admin-card">
-              <strong>{cmsSchemas.length}</strong>
-              <span>CMS models</span>
-              <small>Blog, services, projects, media, partners</small>
-            </article>
-            <article className="metric-card admin-card">
-              <strong>6</strong>
-              <span>Integrations</span>
-              <small>Forms, CRM, WhatsApp, newsletter, analytics, chat</small>
-            </article>
           </div>
           <div className="admin-tools">
-            <section className="schema-card">
-              <div>
-                <h3>{activeSchema.label}</h3>
-                <p>{activeSchema.description}</p>
-              </div>
-              <div className="schema-fields">
-                {activeSchema.fields.map((field) => (
-                  <span key={field.name}>{field.label}{field.required ? " *" : ""}</span>
-                ))}
-              </div>
-            </section>
-            <section className="admin-panel">
-              <div className="admin-panel-head">
-                <h3>Recent CRM submissions</h3>
-                <button className="button secondary compact" type="button" onClick={clearDemoData}>Clear demo data</button>
-              </div>
-              <div className="admin-table">
-                {(submissions.length ? submissions : [{ id: "No records yet", kind: "contact" as FormKind, status: "new" as SubmissionStatus, createdAt: "", sourceRoute: "", data: { message: "Submit a form to populate this CRM queue." } }]).slice(0, 8).map((item) => (
-                  <article key={item.id}>
-                    <strong>{item.id}</strong>
-                    <span>{item.kind}</span>
-                    <small>{item.data.name || item.data.email || item.data.message}</small>
-                  </article>
-                ))}
-              </div>
-            </section>
-            <section className="admin-panel">
-              <h3>Publishing workflow</h3>
-              <div className="workflow-grid">
-                {["Draft", "Review", "SEO Check", "Publish"].map((step, index) => (
-                  <span key={step}><Clock size={16} /> {index + 1}. {step}</span>
-                ))}
-              </div>
-            </section>
-            <section className="admin-panel">
-              <h3>Integration readiness</h3>
-              <div className="workflow-grid">
-                {["CRM endpoint ready", "Newsletter capture ready", "Analytics dataLayer active", "WhatsApp handoff active", "Chat widget active", "Donation handoff ready"].map((item) => (
-                  <span key={item}><ShieldCheck size={16} /> {item}</span>
-                ))}
-              </div>
-            </section>
+            {activeSection === "brand" && <BrandEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "services" && <CollectionEditor title="Services" items={cms.services} onSave={(items) => updateCms({ ...cms, services: items }, "Services saved.")} createItem={() => ({ audience: "Audience", body: "", featured: false, iconName: "Activity", image: cms.siteImages.hero, published: true, slug: "new-service", summary: "Service summary", title: "New Service" })} renderItem={(item, index, update) => <ServiceFields item={item} update={update} index={index} />} />}
+            {activeSection === "projects" && <CollectionEditor title="Projects & Impact" items={cms.projects} onSave={(items) => updateCms({ ...cms, projects: items }, "Projects saved.")} createItem={() => ({ category: "Impact Story", gallery: [], image: cms.siteImages.outreach, location: "Imo State", metric: "Metric pending", published: true, summary: "Project summary", title: "New Project" })} renderItem={(item, index, update) => <ProjectFields item={item} update={update} index={index} />} />}
+            {activeSection === "articles" && <CollectionEditor title="Blog Posts" items={cms.articles} onSave={(items) => updateCms({ ...cms, articles: items }, "Blog saved.")} createItem={() => ({ author: "Zahthic Healthcare Solutions", body: "Article body", category: "Health Articles", excerpt: "Article excerpt", image: cms.siteImages.about, published: false, publishedAt: new Date().toISOString().slice(0, 10), readTime: "5 min read", title: "New Article" })} renderItem={(item, index, update) => <ArticleFields item={item} update={update} index={index} />} />}
+            {activeSection === "media" && <CollectionEditor title="Media Library" items={cms.mediaItems} onSave={(items) => updateCms({ ...cms, mediaItems: items }, "Media saved.")} createItem={() => ({ description: "Media description", fileUrl: "", image: cms.siteImages.outreach, published: true, title: "New Media Item", type: "Photo" })} renderItem={(item, index, update) => <MediaFields item={item} update={update} index={index} />} />}
+            {activeSection === "recognition" && <CollectionEditor title="Recognition" items={cms.recognitionItems} onSave={(items) => updateCms({ ...cms, recognitionItems: items }, "Recognition saved.")} createItem={() => ({ category: "Spotlight", image: cms.siteImages.partners, published: true, summary: "Recognition summary", title: "New Recognition Item" })} renderItem={(item, index, update) => <RecognitionFields item={item} update={update} index={index} />} />}
+            {activeSection === "partners" && <PartnerEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "faqs" && <FaqEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "contact" && <ContactOptionEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "seo" && <SeoEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "crm" && <CrmAnalyticsPanel submissions={submissions} events={events} clearDemoData={clearDemoData} />}
+            {activeSection === "schemas" && <SchemaPanel />}
+            {activeSection === "settings" && (
+              <section className="admin-panel">
+                <h3>Admin settings</h3>
+                <div className="workflow-grid">
+                  <button className="button secondary" type="button" onClick={exportCms}>Export CMS JSON</button>
+                  <label className="button secondary file-button">
+                    Import CMS JSON
+                    <input type="file" accept="application/json" onChange={(event) => event.currentTarget.files?.[0] && importCms(event.currentTarget.files[0]).catch(() => setNotice("Import failed. Check the JSON file."))} />
+                  </label>
+                  <button className="button secondary" type="button" onClick={() => updateCms(resetCmsContent(), "CMS reset to default content.")}>Reset content</button>
+                  <button className="button secondary" type="button" onClick={() => { localStorage.removeItem(CMS_STORAGE_KEY); updateCms(getDefaultCmsContent(), "Stored CMS data cleared."); }}>Clear stored CMS</button>
+                </div>
+                <p className="admin-helper">This static-site admin stores edits in browser storage. For multi-user live production editing, connect this model to Supabase, Sanity, WordPress, or another authenticated backend.</p>
+              </section>
+            )}
           </div>
         </div>
       </section>
     </>
+  );
+}
+
+function TextField({ label, value, onChange, multiline = false, type = "text" }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean; type?: string }) {
+  return (
+    <label>
+      {label}
+      {multiline ? (
+        <textarea value={value || ""} onChange={(event) => onChange(event.target.value)} rows={4} />
+      ) : (
+        <input type={type} value={value || ""} onChange={(event) => onChange(event.target.value)} />
+      )}
+    </label>
+  );
+}
+
+function ToggleField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
+  return (
+    <label className="toggle-field">
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function SelectField({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
+  return (
+    <label>
+      {label}
+      <select value={value || options[0]} onChange={(event) => onChange(event.target.value)}>
+        {options.map((option) => <option key={option}>{option}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function ImageField({ label, image, onChange }: { label: string; image: ImageAsset; onChange: (image: ImageAsset) => void }) {
+  async function readFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => onChange({ alt: image?.alt || file.name, src: String(reader.result) });
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div className="image-field">
+      <label>
+        {label} URL
+        <input value={image?.src || ""} onChange={(event) => onChange({ ...image, src: event.target.value })} />
+      </label>
+      <label>
+        Alt text
+        <input value={image?.alt || ""} onChange={(event) => onChange({ ...image, alt: event.target.value })} />
+      </label>
+      <label className="button secondary file-button">
+        Upload image
+        <input type="file" accept="image/*" onChange={(event) => event.currentTarget.files?.[0] && readFile(event.currentTarget.files[0])} />
+      </label>
+      {image?.src && <img src={image.src} alt={image.alt || ""} />}
+    </div>
+  );
+}
+
+function CollectionEditor<T extends { title?: string; published?: boolean }>({
+  createItem,
+  items,
+  onSave,
+  renderItem,
+  title,
+}: {
+  createItem: () => T;
+  items: T[];
+  onSave: (items: T[]) => void;
+  renderItem: (item: T, index: number, update: (next: T) => void) => ReactNode;
+  title: string;
+}) {
+  const [draft, setDraft] = useState<T[]>(items);
+
+  useEffect(() => setDraft(items), [items]);
+
+  function updateItem(index: number, next: T) {
+    setDraft((current) => current.map((item, itemIndex) => (itemIndex === index ? next : item)));
+  }
+
+  return (
+    <section className="admin-panel">
+      <div className="admin-panel-head">
+        <h3>{title}</h3>
+        <div className="button-row">
+          <button className="button secondary compact" type="button" onClick={() => setDraft((current) => [createItem(), ...current])}>Add New</button>
+          <button className="button primary compact" type="button" onClick={() => onSave(draft)}>Save Changes</button>
+        </div>
+      </div>
+      <div className="editor-list">
+        {draft.map((item, index) => (
+          <details className="editor-item" key={`${item.title || "item"}-${index}`} open={index === 0}>
+            <summary>
+              <span>{item.title || `Item ${index + 1}`}</span>
+              <small>{item.published === false ? "Draft" : "Published"}</small>
+            </summary>
+            <div className="editor-grid">
+              {renderItem(item, index, (next) => updateItem(index, next))}
+              <div className="editor-actions">
+                <button className="button secondary compact" type="button" onClick={() => setDraft((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
+                <button className="button secondary compact" type="button" onClick={() => setDraft((current) => [current[index], ...current])}>Duplicate</button>
+              </div>
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ServiceFields({ item, update }: { item: EditableService; index: number; update: (next: EditableService) => void }) {
+  return (
+    <>
+      <TextField label="Title" value={item.title} onChange={(title) => update({ ...item, title, slug: item.slug || slugify(title) })} />
+      <TextField label="Slug" value={item.slug} onChange={(slug) => update({ ...item, slug: slugify(slug) })} />
+      <TextField label="Audience" value={item.audience} onChange={(audience) => update({ ...item, audience })} />
+      <SelectField label="Icon" value={item.iconName} options={iconOptions} onChange={(iconName) => update({ ...item, iconName })} />
+      <TextField label="Summary" value={item.summary} multiline onChange={(summary) => update({ ...item, summary })} />
+      <TextField label="Detailed body" value={item.body} multiline onChange={(body) => update({ ...item, body })} />
+      <ImageField label="Service image" image={item.image} onChange={(image) => update({ ...item, image })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+      <ToggleField label="Feature on homepage" checked={item.featured} onChange={(featured) => update({ ...item, featured })} />
+    </>
+  );
+}
+
+function ProjectFields({ item, update }: { item: EditableProject; index: number; update: (next: EditableProject) => void }) {
+  return (
+    <>
+      <TextField label="Title" value={item.title} onChange={(title) => update({ ...item, title })} />
+      <TextField label="Category" value={item.category} onChange={(category) => update({ ...item, category })} />
+      <TextField label="Location" value={item.location} onChange={(location) => update({ ...item, location })} />
+      <TextField label="Metric / figure" value={item.metric} onChange={(metric) => update({ ...item, metric })} />
+      <TextField label="Summary" value={item.summary} multiline onChange={(summary) => update({ ...item, summary })} />
+      <ImageField label="Project image" image={item.image} onChange={(image) => update({ ...item, image })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  );
+}
+
+function ArticleFields({ item, update }: { item: EditableArticle; index: number; update: (next: EditableArticle) => void }) {
+  return (
+    <>
+      <TextField label="Title" value={item.title} onChange={(title) => update({ ...item, title })} />
+      <TextField label="Category" value={item.category} onChange={(category) => update({ ...item, category })} />
+      <TextField label="Author" value={item.author} onChange={(author) => update({ ...item, author })} />
+      <TextField label="Read time" value={item.readTime} onChange={(readTime) => update({ ...item, readTime })} />
+      <TextField label="Published date" type="date" value={item.publishedAt} onChange={(publishedAt) => update({ ...item, publishedAt })} />
+      <TextField label="Excerpt" value={item.excerpt} multiline onChange={(excerpt) => update({ ...item, excerpt })} />
+      <TextField label="Body" value={item.body} multiline onChange={(body) => update({ ...item, body })} />
+      <ImageField label="Cover image" image={item.image} onChange={(image) => update({ ...item, image })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  );
+}
+
+function MediaFields({ item, update }: { item: EditableMediaItem; index: number; update: (next: EditableMediaItem) => void }) {
+  return (
+    <>
+      <TextField label="Title" value={item.title} onChange={(title) => update({ ...item, title })} />
+      <SelectField label="Type" value={item.type} options={["Photo", "Video", "Publication", "Press Release", "Magazine Feature", "Download"]} onChange={(type) => update({ ...item, type })} />
+      <TextField label="File / URL" value={item.fileUrl} onChange={(fileUrl) => update({ ...item, fileUrl })} />
+      <TextField label="Description" value={item.description} multiline onChange={(description) => update({ ...item, description })} />
+      <ImageField label="Thumbnail" image={item.image} onChange={(image) => update({ ...item, image })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  );
+}
+
+function RecognitionFields({ item, update }: { item: EditableRecognitionItem; index: number; update: (next: EditableRecognitionItem) => void }) {
+  return (
+    <>
+      <TextField label="Title" value={item.title} onChange={(title) => update({ ...item, title })} />
+      <TextField label="Category" value={item.category} onChange={(category) => update({ ...item, category })} />
+      <TextField label="Summary" value={item.summary} multiline onChange={(summary) => update({ ...item, summary })} />
+      <ImageField label="Image" image={item.image} onChange={(image) => update({ ...item, image })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  );
+}
+
+function BrandEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
+  const [draft, setDraft] = useState(cms);
+  useEffect(() => setDraft(cms), [cms]);
+  return (
+    <section className="admin-panel">
+      <div className="admin-panel-head">
+        <h3>Brand, homepage and key figures</h3>
+        <button className="button primary compact" type="button" onClick={() => onSave(draft, "Brand and homepage saved.")}>Save Changes</button>
+      </div>
+      <div className="editor-grid">
+        <TextField label="Brand name" value={draft.brand.name} onChange={(name) => setDraft({ ...draft, brand: { ...draft.brand, name } })} />
+        <TextField label="Tagline / hero headline" value={draft.brand.tagline} multiline onChange={(tagline) => setDraft({ ...draft, brand: { ...draft.brand, tagline } })} />
+        <TextField label="Supporting headline" value={draft.brand.supporting} onChange={(supporting) => setDraft({ ...draft, brand: { ...draft.brand, supporting } })} />
+        <TextField label="Location" value={draft.brand.location} onChange={(location) => setDraft({ ...draft, brand: { ...draft.brand, location } })} />
+        <TextField label="Instagram" value={draft.brand.instagram} onChange={(instagram) => setDraft({ ...draft, brand: { ...draft.brand, instagram } })} />
+        <TextField label="Facebook" value={draft.brand.facebook} onChange={(facebook) => setDraft({ ...draft, brand: { ...draft.brand, facebook } })} />
+      </div>
+      <h4>Homepage Images</h4>
+      <div className="editor-grid">
+        {Object.entries(draft.siteImages).map(([key, image]) => (
+          <ImageField key={key} label={key} image={image} onChange={(nextImage) => setDraft({ ...draft, siteImages: { ...draft.siteImages, [key]: nextImage } })} />
+        ))}
+      </div>
+      <h4>Impact Figures</h4>
+      <div className="editor-list compact-list">
+        {draft.impactStats.map((stat, index) => (
+          <div className="editor-grid" key={`${stat.label}-${index}`}>
+            <TextField label="Value" value={stat.value} onChange={(value) => setDraft({ ...draft, impactStats: draft.impactStats.map((item, itemIndex) => itemIndex === index ? { ...item, value } : item) })} />
+            <TextField label="Label" value={stat.label} onChange={(label) => setDraft({ ...draft, impactStats: draft.impactStats.map((item, itemIndex) => itemIndex === index ? { ...item, label } : item) })} />
+            <TextField label="Note" value={stat.note} onChange={(note) => setDraft({ ...draft, impactStats: draft.impactStats.map((item, itemIndex) => itemIndex === index ? { ...item, note } : item) })} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PartnerEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
+  return <CollectionEditor<EditablePartnerCategory> title="Partners" items={cms.partnerCategories} onSave={(partnerCategories) => onSave({ ...cms, partnerCategories }, "Partners saved.")} createItem={() => ({ iconName: "HandHeart", published: true, title: "New Partner", website: "" })} renderItem={(item, _index, update) => (
+    <>
+      <TextField label="Name / category" value={item.title} onChange={(title) => update({ ...item, title })} />
+      <SelectField label="Icon" value={item.iconName} options={iconOptions} onChange={(iconName) => update({ ...item, iconName })} />
+      <TextField label="Website" value={item.website} onChange={(website) => update({ ...item, website })} />
+      <ImageField label="Logo" image={item.logo || { src: "", alt: item.title }} onChange={(logo) => update({ ...item, logo })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  )} />;
+}
+
+function FaqEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
+  return <CollectionEditor title="FAQ" items={cms.faqs} onSave={(faqs) => onSave({ ...cms, faqs }, "FAQ saved.")} createItem={() => ({ answer: "Answer", published: true, question: "New question?" })} renderItem={(item, _index, update) => (
+    <>
+      <TextField label="Question" value={item.question} onChange={(question) => update({ ...item, question })} />
+      <TextField label="Answer" value={item.answer} multiline onChange={(answer) => update({ ...item, answer })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  )} />;
+}
+
+function ContactOptionEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
+  return <CollectionEditor title="Contact Cards" items={cms.contactOptions} onSave={(contactOptions) => onSave({ ...cms, contactOptions }, "Contact options saved.")} createItem={() => ({ iconName: "CalendarCheck", published: true, text: "Card text", title: "New Contact Option" })} renderItem={(item, _index, update) => (
+    <>
+      <TextField label="Title" value={item.title} onChange={(title) => update({ ...item, title })} />
+      <TextField label="Text" value={item.text} multiline onChange={(text) => update({ ...item, text })} />
+      <SelectField label="Icon" value={item.iconName} options={iconOptions} onChange={(iconName) => update({ ...item, iconName })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  )} />;
+}
+
+function SeoEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
+  return <CollectionEditor title="SEO Metadata" items={cms.seoRecords} onSave={(seoRecords) => onSave({ ...cms, seoRecords }, "SEO metadata saved.")} createItem={() => ({ description: "SEO description", ogImage: "", path: "/new-page", title: "Page Title | Zahthic Healthcare Solutions" })} renderItem={(item, _index, update) => (
+    <>
+      <TextField label="Route path" value={item.path} onChange={(path) => update({ ...item, path })} />
+      <TextField label="SEO title" value={item.title} onChange={(title) => update({ ...item, title })} />
+      <TextField label="Meta description" value={item.description} multiline onChange={(description) => update({ ...item, description })} />
+      <TextField label="Open Graph image URL" value={item.ogImage || ""} onChange={(ogImage) => update({ ...item, ogImage })} />
+    </>
+  )} />;
+}
+
+function CrmAnalyticsPanel({ clearDemoData, events, submissions }: { clearDemoData: () => void; events: AnalyticsEvent[]; submissions: SubmissionRecord[] }) {
+  return (
+    <>
+      <section className="admin-panel">
+        <div className="admin-panel-head">
+          <h3>Recent CRM submissions</h3>
+          <button className="button secondary compact" type="button" onClick={clearDemoData}>Clear demo data</button>
+        </div>
+        <div className="admin-table">
+          {(submissions.length ? submissions : [{ id: "No records yet", kind: "contact" as FormKind, status: "new" as SubmissionStatus, createdAt: "", sourceRoute: "", data: { message: "Submit a form to populate this CRM queue." } }]).slice(0, 12).map((item) => (
+            <article key={item.id}>
+              <strong>{item.id}</strong>
+              <span>{item.kind}</span>
+              <small>{item.data.name || item.data.email || item.data.message}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="admin-panel">
+        <h3>Analytics events</h3>
+        <div className="admin-table">
+          {(events.length ? events : [{ name: "No events yet", route: "/", timestamp: "", payload: { note: "Browse the site to populate analytics." } }]).slice(0, 12).map((item, index) => (
+            <article key={`${item.name}-${item.timestamp}-${index}`}>
+              <strong>{item.name}</strong>
+              <span>{item.route}</span>
+              <small>{item.timestamp ? new Date(item.timestamp).toLocaleString() : "Waiting for activity"}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
+function SchemaPanel() {
+  return (
+    <section className="admin-panel">
+      <h3>CMS schemas</h3>
+      <div className="schema-list">
+        {cmsSchemas.map((schema) => (
+          <div className="schema-card" key={schema.name}>
+            <div>
+              <h3>{schema.label}</h3>
+              <p>{schema.description}</p>
+            </div>
+            <div className="schema-fields">
+              {schema.fields.map((field) => (
+                <span key={field.name}>{field.label}{field.required ? " *" : ""}</span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
