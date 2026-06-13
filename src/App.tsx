@@ -33,6 +33,8 @@ import {
 import type { CmsContent, EditableArticle, EditableMediaItem, EditablePartnerCategory, EditableProject, EditableRecognitionItem, EditableService } from "./cms/runtime";
 import logoDark from "./assets/zahthic-logo-2.svg";
 import logoLight from "./assets/zahthic-logo-1.svg";
+import spaceLogoDarkText from "./assets/space-logo-dark-text.png";
+import spaceLogoLightText from "./assets/space-logo-light-text.png";
 import { navItems } from "./content";
 import type { ImageAsset } from "./content";
 
@@ -453,6 +455,19 @@ function BrandLogo({ variant }: { variant: "auto" | "light" | "dark" }) {
   );
 }
 
+function SpaceLogo({ variant = "auto" }: { variant?: "auto" | "light" | "dark" }) {
+  return (
+    <span className={`space-logo-wrap ${variant === "auto" ? "space-logo-auto" : ""}`}>
+      {(variant === "auto" || variant === "light") && (
+        <img className="space-logo-image space-logo-light" src={spaceLogoDarkText} alt="SPACE Project" />
+      )}
+      {(variant === "auto" || variant === "dark") && (
+        <img className="space-logo-image space-logo-dark" src={spaceLogoLightText} alt="SPACE Project" />
+      )}
+    </span>
+  );
+}
+
 function PageHero({ eyebrow, title, body }: { eyebrow: string; title: string; body: string }) {
   return (
     <section className="page-hero">
@@ -655,12 +670,15 @@ function SpaceFeature() {
   return (
     <section className="space-feature">
       <div>
-        <span className="eyebrow">Flagship initiative</span>
+        <div className="space-feature-lockup">
+          <span className="eyebrow">Flagship initiative</span>
+          <SpaceLogo variant="dark" />
+        </div>
         <h2>The SPACE Project</h2>
-        <p>A preventive health initiative protecting the spinal and musculoskeletal health of children and adolescents through education, early intervention, research, and community engagement.</p>
+        <p>Zahthic's flagship preventive health initiative protecting the spinal and musculoskeletal health of children and adolescents before problems become lifelong limitations.</p>
       </div>
       <div className="step-list">
-        {["Education", "Early Intervention", "Research", "Community Engagement", "Child & Adolescent Health", "Partnership Opportunities"].map((item) => (
+        {["School Health & Ergonomics", "Physical Activity Promotion", "Early Screening", "Research & Data", "Advocacy", "Stakeholder Engagement"].map((item) => (
           <a href="#/space" key={item}>{item}</a>
         ))}
       </div>
@@ -915,20 +933,94 @@ function ArticleDetailPage({ article }: { article: EditableArticle }) {
 
 function SpacePage() {
   const { cms } = useCms();
+  const spaceActions = [
+    "Healthy posture and movement habits",
+    "Ergonomic awareness in learning environments",
+    "Regular physical activity in schools and homes",
+    "Early identification of musculoskeletal risk factors",
+  ];
+  const focusAreas = [
+    {
+      title: "School Health & Ergonomics",
+      body: "Improving posture awareness, classroom ergonomics, and movement-friendly learning environments.",
+    },
+    {
+      title: "Physical Activity Promotion",
+      body: "Encouraging active lifestyles that support healthy musculoskeletal development.",
+    },
+    {
+      title: "Early Screening & Risk Identification",
+      body: "Identifying posture and movement-related risk factors before they progress into long-term conditions.",
+    },
+    {
+      title: "Research & Data Collection",
+      body: "Generating insights to better understand child and adolescent musculoskeletal health trends.",
+    },
+    {
+      title: "Advocacy & Stakeholder Engagement",
+      body: "Working with schools, communities, and stakeholders to strengthen preventive health practices.",
+    },
+  ];
   return (
     <>
-      <PageHero eyebrow="Flagship Initiative" title="The SPACE Project" body="SPACE is a preventive health initiative dedicated to protecting the spinal and musculoskeletal health of children and adolescents through education, early intervention, research, and community engagement." />
-      <section className="content-section feature-split">
+      <section className="page-hero space-page-hero">
+        <SpaceLogo />
+        <span className="eyebrow">The SPACE Project</span>
+        <h1>Spinal Protection and Awareness for Children's Ergonomics (SPACE)</h1>
+        <p>SPACE is the flagship preventive health initiative of Zahthic Healthcare Solutions.</p>
+      </section>
+      <section className="content-section feature-split space-intro-section">
         <div>
           <span className="eyebrow">Preventive health for young people</span>
           <h2>Protecting spinal and musculoskeletal health before problems become lifelong limitations.</h2>
-          <p>SPACE focuses on children and adolescents because posture, movement habits, school ergonomics, early pain patterns, and musculoskeletal awareness can shape long-term health, confidence, and quality of life.</p>
-          <p>Through education, early intervention, research, and community engagement, the initiative helps families, schools, communities, and partners identify risks early and support healthier development.</p>
+          <p>SPACE was established to address a growing but overlooked public health issue affecting children and adolescents: the early development of poor posture, reduced physical activity, and musculoskeletal strain linked to modern learning environments and lifestyle habits.</p>
+          <p>Factors such as prolonged sitting in classrooms and at home, increased screen exposure, heavy school bags, and limited physical activity are contributing to preventable spinal and musculoskeletal problems in young people.</p>
+          <p>Traditionally, these conditions are often recognized and treated only after symptoms develop in adulthood. SPACE seeks to shift this approach from treatment to prevention.</p>
         </div>
         <div className="feature-stack">
           <MediaImage image={cms.siteImages.space} variant="feature" />
           <div className="step-list light">
-            {["Spinal health education", "Musculoskeletal screening and early intervention", "School and community engagement", "Research and evidence-informed prevention"].map((item) => <span key={item}>{item}</span>)}
+            {["School partnerships", "Health education", "Community engagement", "Screening initiatives", "Evidence-based interventions"].map((item) => <span key={item}>{item}</span>)}
+          </div>
+        </div>
+      </section>
+      <section className="content-section space-details-grid">
+        <article className="space-detail-panel">
+          <span className="eyebrow">What SPACE does</span>
+          <h2>Prevention through education, screening, and evidence-based action.</h2>
+          <p>Through school partnerships, health education, community engagement, screening initiatives, and evidence-based interventions, SPACE promotes practical habits and early support for healthier spinal and musculoskeletal development.</p>
+        </article>
+        <div className="space-action-grid">
+          {spaceActions.map((item) => (
+            <article className="space-action-card" key={item}>
+              <CheckCircle2 size={20} />
+              <h3>{item}</h3>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="content-section space-focus-section">
+        <SectionHeader eyebrow="Focus areas" title="A prevention framework for schools, homes, communities, and stakeholders." body="SPACE brings health education, ergonomics, movement habits, screening, research, and advocacy into one clear child and adolescent health initiative." />
+        <div className="card-grid">
+          {focusAreas.map((area) => (
+            <article className="service-card space-focus-card" key={area.title}>
+              <ShieldCheck size={22} />
+              <h3>{area.title}</h3>
+              <p>{area.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="content-section final-cta space-cta">
+        <div>
+          <span className="eyebrow">Partner with SPACE</span>
+          <h2>Help schools and communities prevent avoidable spinal and musculoskeletal problems early.</h2>
+        </div>
+        <div>
+          <p>SPACE is designed for schools, parents, community organizations, health stakeholders, and partners who want practical prevention, screening, and education for children and adolescents.</p>
+          <div className="button-row">
+            <a className="button primary" href="#/partners">Partner With Us <ArrowRight size={17} /></a>
+            <a className="button secondary on-dark" href="#/contact">Contact Zahthic</a>
           </div>
         </div>
       </section>
