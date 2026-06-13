@@ -62,6 +62,7 @@ const CRM_STORAGE_KEY = "zahthic-crm-submissions";
 const ANALYTICS_STORAGE_KEY = "zahthic-analytics-events";
 const WHATSAPP_NUMBER = "2347033362935";
 const HAS_WHATSAPP_NUMBER = Boolean(WHATSAPP_NUMBER.trim());
+const SITE_URL = "https://zahthic.com";
 const CmsContext = createContext<{
   cms: CmsContent;
   setCms: (content: CmsContent) => void;
@@ -123,6 +124,11 @@ function getRoute() {
 
 function getRoutePath(route: string) {
   return route.split("?")[0].replace(/\/+$/, "") || "/";
+}
+
+function getCanonicalUrl(route: string) {
+  const path = getRoutePath(route);
+  return `${SITE_URL}/#${path}`;
 }
 
 function slugify(value: string) {
@@ -224,6 +230,16 @@ function upsertMeta(name: string, content: string, property = false) {
   tag.content = content;
 }
 
+function upsertCanonical(href: string) {
+  let tag = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!tag) {
+    tag = document.createElement("link");
+    tag.rel = "canonical";
+    document.head.appendChild(tag);
+  }
+  tag.href = href;
+}
+
 export function App() {
   const [route, setRoute] = useState(getRoute());
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem("zahthic-theme") as Theme) || "light");
@@ -253,13 +269,19 @@ export function App() {
 
   useEffect(() => {
     const seo = getSeoForRoute(route, cms);
+    const canonicalUrl = getCanonicalUrl(route);
     document.title = seo.title;
+    upsertCanonical(canonicalUrl);
     upsertMeta("description", seo.description);
     upsertMeta("og:title", seo.title, true);
     upsertMeta("og:description", seo.description, true);
     upsertMeta("og:type", "website", true);
+    upsertMeta("og:url", canonicalUrl, true);
     if (seo.ogImage) upsertMeta("og:image", seo.ogImage, true);
     upsertMeta("twitter:card", "summary_large_image");
+    upsertMeta("twitter:url", canonicalUrl);
+    upsertMeta("twitter:title", seo.title);
+    upsertMeta("twitter:description", seo.description);
     trackEvent("page_view", route, { title: seo.title });
     mainRef.current?.focus({ preventScroll: true });
   }, [route, cms]);
