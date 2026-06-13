@@ -41,7 +41,7 @@ The production output is generated in `dist/`.
 
 ## Admin Preview Workflow
 
-1. Visit `#/admin`.
+1. Visit `https://zahthic.com/admin`.
 2. Select a CMS model from the left menu.
 3. Review required fields for content publishing.
 4. Submit a public form to see a CRM record appear.
@@ -71,4 +71,3 @@ For production, replace local capture with API calls to the chosen CRM, newslett
 - Use verified numbers only for impact stats.
 - Use approved testimonials only after consent.
 - Keep imagery primarily African/Black, dignified, real-world, and care/community focused.
-

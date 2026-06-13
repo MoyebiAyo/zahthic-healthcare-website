@@ -118,6 +118,8 @@ function servicesForDivision(services: EditableService[], division: string) {
 }
 
 function getRoute() {
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/admin") return "/admin";
   const hash = window.location.hash.replace("#", "");
   return hash || "/";
 }
@@ -128,6 +130,7 @@ function getRoutePath(route: string) {
 
 function getCanonicalUrl(route: string) {
   const path = getRoutePath(route);
+  if (path === "/admin") return `${SITE_URL}/admin`;
   return `${SITE_URL}/#${path}`;
 }
 
@@ -270,9 +273,11 @@ export function App() {
   useEffect(() => {
     const seo = getSeoForRoute(route, cms);
     const canonicalUrl = getCanonicalUrl(route);
+    const path = getRoutePath(route);
     document.title = seo.title;
     upsertCanonical(canonicalUrl);
     upsertMeta("description", seo.description);
+    upsertMeta("robots", path === "/admin" ? "noindex,nofollow" : "index,follow");
     upsertMeta("og:title", seo.title, true);
     upsertMeta("og:description", seo.description, true);
     upsertMeta("og:type", "website", true);
@@ -421,7 +426,7 @@ function Header({
 
       {menuOpen && (
         <nav className="mobile-nav" aria-label="Mobile navigation">
-          {[...navItems, { label: "Support", href: "#/support" }, { label: "Admin", href: "#/admin" }].map((item) => (
+          {[...navItems, { label: "Support", href: "#/support" }].map((item) => (
             <a key={item.href} href={item.href}>
               {item.label}
             </a>
@@ -445,7 +450,7 @@ function Footer() {
       <div className="footer-grid">
         <FooterLinks title="Explore" links={[["About", "#/about"], ["Services", "#/services"], ["Impact", "#/impact"], ["Blog", "#/blog"]]} />
         <FooterLinks title="Connect" links={[["Partners", "#/partners"], ["Media Center", "#/media"], ["Careers", "#/careers"], ["Contact", "#/contact"]]} />
-        <FooterLinks title="Support" links={[["SPACE Project", "#/space"], ["Donate / Support", "#/support"], ["FAQ", "#/faq"], ["Admin", "#/admin"]]} />
+        <FooterLinks title="Support" links={[["SPACE Project", "#/space"], ["Donate / Support", "#/support"], ["FAQ", "#/faq"]]} />
       </div>
     </footer>
   );
