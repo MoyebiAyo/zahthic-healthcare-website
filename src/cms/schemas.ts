@@ -18,6 +18,20 @@ export type CmsSchema = {
 
 export const cmsSchemas: CmsSchema[] = [
   {
+    name: "homepage",
+    label: "Homepage Content",
+    description: "Hero copy, footer motto, SPACE teaser, core focus areas, homepage images, and measurable impact figures.",
+    fields: [
+      { name: "heroEyebrow", label: "Hero Eyebrow", type: "text", required: true },
+      { name: "tagline", label: "Hero Headline", type: "textarea", required: true },
+      { name: "heroBody", label: "Hero Body", type: "textarea", required: true },
+      { name: "footerMotto", label: "Footer Motto", type: "text", required: true },
+      { name: "spaceTeaser", label: "SPACE Homepage Teaser", type: "textarea" },
+      { name: "coreFocusAreas", label: "Core Focus Areas", type: "textarea", helpText: "Editable list in the Brand & Homepage admin section." },
+      { name: "impactStats", label: "Impact Figures", type: "textarea", helpText: "Editable value, label, and note records." },
+    ],
+  },
+  {
     name: "blogPost",
     label: "Blog Post",
     description: "Health articles, rehabilitation tips, community updates, press releases, research insights, and project reports.",

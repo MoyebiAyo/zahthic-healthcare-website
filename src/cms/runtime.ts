@@ -1,10 +1,12 @@
 import {
   Activity,
+  BookOpen,
   BriefcaseBusiness,
   Building2,
   CalendarCheck,
   FileText,
   HandHeart,
+  HeartHandshake,
   HeartPulse,
   Home,
   Landmark,
@@ -21,6 +23,7 @@ import {
   articles,
   brand,
   contactOptions,
+  coreFocusAreas,
   faqs,
   impactStats,
   mediaItems,
@@ -119,6 +122,7 @@ export type SeoRecord = {
 
 export type CmsContent = {
   brand: typeof brand;
+  coreFocusAreas: typeof coreFocusAreas;
   siteImages: typeof siteImages;
   services: EditableService[];
   impactStats: typeof impactStats;
@@ -135,11 +139,13 @@ export type CmsContent = {
 
 export const iconRegistry: Record<string, LucideIcon> = {
   Activity,
+  BookOpen,
   BriefcaseBusiness,
   Building2,
   CalendarCheck,
   FileText,
   HandHeart,
+  HeartHandshake,
   HeartPulse,
   Home,
   Landmark,
@@ -357,6 +363,7 @@ export function getIcon(name = "Sparkles") {
 export function getDefaultCmsContent(): CmsContent {
   return {
     brand: { ...brand },
+    coreFocusAreas: coreFocusAreas.map((area) => ({ ...area })),
     siteImages: { ...siteImages },
     services: defaultServices.map((service) => ({ ...service })),
     impactStats: impactStats.map((stat) => ({ ...stat })),
@@ -385,6 +392,7 @@ export function getDefaultCmsContent(): CmsContent {
     })),
     partnerCategories: partnerCategories.map((partner, index) => ({
       iconName: partnerIconNames[index] || "Sparkles",
+      logo: { src: "", alt: `${partner.title} logo` },
       published: true,
       title: partner.title,
       website: "",
@@ -438,12 +446,29 @@ export function resetCmsContent() {
   return next;
 }
 
+export function normalizeCmsContent(saved: Partial<CmsContent>): CmsContent {
+  return mergeCmsContent(saved);
+}
+
 function mergeCmsContent(saved: Partial<CmsContent>): CmsContent {
   const fallback = getDefaultCmsContent();
+  const legacyImpactLabels = new Set(["Care pathways", "Impact tracks", "Education resources", "Partner pathways"]);
+  const savedImpactStats = saved.impactStats?.some((stat) => legacyImpactLabels.has(stat.label)) ? fallback.impactStats : saved.impactStats;
+  const savedBrand = { ...fallback.brand, ...saved.brand };
+  if (savedBrand.supporting.includes("rehabilitation-led healthcare organization focused on restoring function")) {
+    savedBrand.supporting = fallback.brand.supporting;
+  }
+  if (!savedBrand.footerMotto || savedBrand.footerMotto.includes("rehabilitation-led healthcare organization focused on restoring function")) {
+    savedBrand.footerMotto = fallback.brand.footerMotto;
+  }
+  if (!savedBrand.heroBody) savedBrand.heroBody = fallback.brand.heroBody;
+  if (!savedBrand.heroEyebrow) savedBrand.heroEyebrow = fallback.brand.heroEyebrow;
+  if (!savedBrand.spaceTeaser) savedBrand.spaceTeaser = fallback.brand.spaceTeaser;
   return {
     ...fallback,
     ...saved,
-    brand: { ...fallback.brand, ...saved.brand },
+    brand: savedBrand,
+    coreFocusAreas: saved.coreFocusAreas?.length ? saved.coreFocusAreas.map((area, index) => ({ ...fallback.coreFocusAreas[index % fallback.coreFocusAreas.length], ...area })) : fallback.coreFocusAreas,
     siteImages: { ...fallback.siteImages, ...saved.siteImages },
     services: saved.services?.length
       ? saved.services.map((service) => ({
@@ -451,7 +476,7 @@ function mergeCmsContent(saved: Partial<CmsContent>): CmsContent {
           division: service.division || service.audience || "Rehabilitation Services",
         }))
       : fallback.services,
-    impactStats: saved.impactStats?.length ? saved.impactStats : fallback.impactStats,
+    impactStats: savedImpactStats?.length ? savedImpactStats : fallback.impactStats,
     projects: saved.projects?.length ? saved.projects : fallback.projects,
     articles: saved.articles?.length ? saved.articles : fallback.articles,
     mediaItems: saved.mediaItems?.length ? saved.mediaItems : fallback.mediaItems,

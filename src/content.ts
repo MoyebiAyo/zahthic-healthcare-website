@@ -126,12 +126,34 @@ export const recognitionItems = [
 
 export const brand = {
   name: "Zahthic Healthcare Solutions",
+  heroEyebrow: "Rehabilitation-Led Care | Preventive Health Systems | Community Health Impact",
   tagline: "Bridging the Gap Between Prevention, Treatment and Rehabilitation.",
+  heroBody: "Zahthic Healthcare Solutions is a rehabilitation-led healthcare organization focused on restoring function, improving mobility, and reducing disability risk through clinical rehabilitation, preventive healthcare, workplace wellness, and community-based health interventions.",
+  footerMotto: "Transforming Health. Empowering Lives.",
+  spaceTeaser: "Spinal Protection and Awareness for Children's Ergonomics (SPACE) is Zahthic's flagship preventive health initiative focused on improving posture, movement habits, and musculoskeletal health in children and adolescents through school-based education, early screening, and community engagement.",
   supporting: "Transforming Health. Empowering Lives.",
   location: "Orlu / Owerri, Imo State, Nigeria",
   instagram: "https://www.instagram.com/zahthichealthcare?igsh=MXV4Y3pyOG9iaDEwaQ==",
   facebook: "https://facebook.com/Zahthichealthcare",
 };
+
+export const coreFocusAreas = [
+  {
+    description: "Restoring movement, function, and independence through evidence-based rehabilitation services.",
+    iconName: "HeartHandshake",
+    title: "Rehabilitation-Led Care",
+  },
+  {
+    description: "Reducing the risk of disability and chronic conditions through education, early intervention, and health promotion.",
+    iconName: "ShieldCheck",
+    title: "Preventive Health Systems",
+  },
+  {
+    description: "Improving access to care through outreach programs, community-based rehabilitation, and health education initiatives.",
+    iconName: "BookOpen",
+    title: "Community Health Impact",
+  },
+];
 
 export const navItems = [
   { label: "Home", href: "#/" },
@@ -245,10 +267,14 @@ export const services: Service[] = [
 ];
 
 export const impactStats = [
-  { value: "10", label: "Care pathways", note: "Services and support routes mapped" },
-  { value: "3", label: "Impact tracks", note: "Community, rehabilitation, and workplace programs" },
-  { value: "3", label: "Education resources", note: "Launch articles prepared" },
-  { value: "6", label: "Partner pathways", note: "Public, NGO, clinical, education, corporate, development" },
+  { value: "250+", label: "Patients treated", note: "People supported through rehabilitation-led care" },
+  { value: "900+", label: "Rehabilitation sessions delivered", note: "Clinical sessions focused on movement, function, and recovery" },
+  { value: "120+", label: "Home visits completed", note: "Care delivered closer to patients and families" },
+  { value: "2,500+", label: "Community members reached", note: "People reached through outreach, education, and prevention activities" },
+  { value: "35+", label: "Outreach programs conducted", note: "Community health and rehabilitation awareness programs" },
+  { value: "18+", label: "Schools reached", note: "Preventive health education for children and adolescents" },
+  { value: "24+", label: "Organizations engaged", note: "Workplace wellness, partnerships, and institutional collaboration" },
+  { value: "12+", label: "Active partnerships", note: "Partners supporting access, outreach, education, and impact" },
 ];
 
 export const projects: Project[] = [

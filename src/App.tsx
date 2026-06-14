@@ -26,6 +26,7 @@ import {
   getDefaultCmsContent,
   getIcon,
   iconOptions,
+  normalizeCmsContent,
   readCmsContent,
   resetCmsContent,
   writeCmsContent,
@@ -251,8 +252,9 @@ export function App() {
   const mainRef = useRef<HTMLElement>(null);
 
   function setCms(content: CmsContent) {
-    setCmsState(content);
-    writeCmsContent(content);
+    const normalized = normalizeCmsContent(content);
+    setCmsState(normalized);
+    writeCmsContent(normalized);
   }
 
   useEffect(() => {
@@ -445,7 +447,7 @@ function Footer() {
         <a className="brand-lockup footer-brand" href="#/">
           <BrandLogo variant="dark" />
         </a>
-        <p>{cms.brand.tagline}</p>
+        <p>{cms.brand.footerMotto}</p>
       </div>
       <div className="footer-grid">
         <FooterLinks title="Explore" links={[["About", "#/about"], ["Services", "#/services"], ["Impact", "#/impact"], ["Blog", "#/blog"]]} />
@@ -523,12 +525,9 @@ function HomePage() {
     <>
       <section className="home-hero">
         <div className="hero-copy">
-          <span className="eyebrow">Healthcare. Rehabilitation. Prevention. Community Impact.</span>
+          <span className="eyebrow">{cms.brand.heroEyebrow}</span>
           <h1>{cms.brand.tagline}</h1>
-          <p className="hero-support">{cms.brand.supporting}</p>
-          <p>
-            Zahthic helps individuals, families, organizations, and communities access rehabilitation, preventive healthcare, wellness education, and long-term support for better health outcomes.
-          </p>
+          <p className="hero-support">{cms.brand.heroBody}</p>
           <div className="button-row">
             <a className="button primary" href="#/contact">
               Book Consultation <ArrowRight size={18} />
@@ -539,13 +538,8 @@ function HomePage() {
           </div>
         </div>
         <VisualPanel image={cms.siteImages.hero} label="Rehabilitation, wellness, and community health in action">
-          <div className="floating-proof">
-            <strong>10</strong>
-            <span>Care pathways mapped</span>
-          </div>
         </VisualPanel>
       </section>
-      <TrustStrip />
       <section className="content-section two-column">
         <div>
           <span className="eyebrow">Who we are</span>
@@ -553,32 +547,44 @@ function HomePage() {
         </div>
         <div>
           <p>
-            Zahthic was created to close the gap between clinical care and community wellbeing. Our work brings together physiotherapy, rehabilitation, prevention, wellness, education, home care, and outreach programs so people can recover, function better, and live with greater confidence.
+            Many healthcare systems respond only after illness, injury, or disability has already occurred. At Zahthic, we believe healthcare must go beyond treatment. We exist to bridge the gap between prevention, treatment, and rehabilitation by ensuring that individuals not only recover from health challenges but also maintain long-term function, independence, and quality of life.
           </p>
           <a className="text-link" href="#/about">Learn about Zahthic <ArrowRight size={16} /></a>
         </div>
       </section>
-      <ServicesPreview />
+      <CoreFocusAreas />
       <ImpactBand />
-      <ProjectFeature />
       <SpaceFeature />
-      <BlogPreview />
+      <ServicesPreview />
       <PartnerPreview />
+      <BlogPreview />
+      <ProjectFeature />
       <FinalCta />
     </>
   );
 }
 
-function TrustStrip() {
-  const items = ["Rehabilitation-focused care", "Community-centered programs", "Prevention education", "Home and workplace support", "Impact-driven outreach"];
+function CoreFocusAreas() {
+  const { cms } = useCms();
+
   return (
-    <section className="trust-strip" aria-label="Zahthic care strengths">
-      {items.map((item) => (
-        <div key={item}>
-          <CheckCircle2 size={18} />
-          <span>{item}</span>
-        </div>
-      ))}
+    <section className="content-section core-focus-section">
+      <SectionHeader eyebrow="Our Core Focus Areas" title="Focused care that supports recovery, prevention, and community wellbeing." />
+      <div className="core-focus-grid">
+        {cms.coreFocusAreas.map((area, index) => {
+          const Icon = getIcon(area.iconName);
+          return (
+            <article className="core-focus-card" key={area.title}>
+              <span className="core-focus-number">{String(index + 1).padStart(2, "0")}</span>
+              <div className="core-focus-icon">
+                <Icon size={22} />
+              </div>
+              <h3>{area.title}</h3>
+              <p>{area.description}</p>
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -662,8 +668,8 @@ function ImpactBand() {
     <section className="impact-band">
       <div>
         <span className="eyebrow">Measurable impact</span>
-        <h2>Building healthier communities through practical action.</h2>
-        <p>Launch indicators reflect the current service model, project tracks, education resources, and partnership pathways prepared for Zahthic.</p>
+        <h2>Healthcare outcomes that can be seen, counted, and sustained.</h2>
+        <p>Zahthic delivers healthcare through a model that integrates clinical rehabilitation, prevention, and community engagement to create sustainable health outcomes for individuals, organizations, and communities.</p>
       </div>
       <div className="metric-grid">
         {cms.impactStats.map((stat) => (
@@ -694,20 +700,18 @@ function ProjectFeature() {
 }
 
 function SpaceFeature() {
+  const { cms } = useCms();
   return (
     <section className="space-feature">
       <div>
         <div className="space-feature-lockup">
           <span className="eyebrow">Flagship initiative</span>
-          <SpaceLogo variant="dark" />
+          <SpaceLogo variant="auto" />
         </div>
-        <h2>The SPACE Project</h2>
-        <p>Zahthic's flagship preventive health initiative protecting the spinal and musculoskeletal health of children and adolescents before problems become lifelong limitations.</p>
-      </div>
-      <div className="step-list">
-        {["School Health & Ergonomics", "Physical Activity Promotion", "Early Screening", "Research & Data", "Advocacy", "Stakeholder Engagement"].map((item) => (
-          <a href="#/space" key={item}>{item}</a>
-        ))}
+        <p>{cms.brand.spaceTeaser}</p>
+        <a className="button primary" href="#/space">
+          Explore SPACE <ArrowRight size={18} />
+        </a>
       </div>
     </section>
   );
@@ -748,18 +752,43 @@ function PartnerPreview() {
   const visiblePartners = cms.partnerCategories.filter((partner) => partner.published);
   return (
     <section className="content-section partner-preview">
-      <SectionHeader eyebrow="Partners" title="Partnerships that expand access to better health." body="Logo placeholders remain neutral until approved partner assets are supplied." />
+      <SectionHeader
+        eyebrow="Partners"
+        title="Partnerships & Collaboration"
+        body="We collaborate with government agencies, healthcare institutions, NGOs, schools, and organizations committed to improving health outcomes and expanding access to care."
+      />
       <div className="logo-grid">
         {visiblePartners.map((partner) => {
           const Icon = getIcon(partner.iconName);
-          return (
-            <article className="logo-tile" key={partner.title}>
-              <Icon size={24} />
+          const hasLogo = Boolean(partner.logo?.src);
+          const content = (
+            <>
+              {hasLogo ? (
+                <img className="partner-logo-image" src={partner.logo?.src} alt={partner.logo?.alt || partner.title} loading="lazy" decoding="async" />
+              ) : (
+                <div className="partner-logo-placeholder">
+                  <Icon size={24} />
+                </div>
+              )}
               <span>{partner.title}</span>
-            </article>
+            </>
+          );
+          return (
+            partner.website ? (
+              <a className="logo-tile" href={partner.website} key={partner.title} rel="noreferrer" target="_blank">
+                {content}
+              </a>
+            ) : (
+              <article className="logo-tile" key={partner.title}>
+                {content}
+              </article>
+            )
           );
         })}
       </div>
+      <a className="button primary section-action" href="#/partners">
+        Become a Partner <ArrowRight size={18} />
+      </a>
     </section>
   );
 }
@@ -789,6 +818,7 @@ function AboutPage() {
         </div>
         <div>
           <p>Zahthic began with a strong foundation in physiotherapy and rehabilitation. Over time, that foundation expanded into a wider vision: a healthcare solutions organization that supports recovery, promotes prevention, strengthens communities, and creates practical pathways to long-term wellbeing.</p>
+          <p>As part of the wider Zahthic brand family, Zahthic Healthcare Solutions carries the parent brand's commitment to whole-person wellbeing, innovation, accessibility, sustainability, and human development into focused rehabilitation-led care.</p>
           <p>Founded by PT Cosmas Harrison Ifeanyichukwu, Zahthic reflects a commitment to expanding access to rehabilitation, preventive healthcare, wellness, and community-centered support across Nigeria.</p>
         </div>
       </section>
@@ -991,7 +1021,7 @@ function SpacePage() {
   return (
     <>
       <section className="page-hero space-page-hero">
-        <SpaceLogo variant="dark" />
+        <SpaceLogo variant="auto" />
         <h1>Spinal Protection and Awareness for Children's Ergonomics (SPACE)</h1>
         <p>SPACE is the flagship preventive health initiative of Zahthic Healthcare Solutions.</p>
       </section>
@@ -1624,7 +1654,7 @@ function AdminPage() {
   }
 
   function updateCms(next: CmsContent, message = "Saved.") {
-    setCms({ ...next, updatedAt: new Date().toISOString() });
+    setCms(normalizeCmsContent({ ...next, updatedAt: new Date().toISOString() }));
     setNotice(message);
   }
 
@@ -1648,7 +1678,7 @@ function AdminPage() {
 
   async function importCms(file: File) {
     const text = await file.text();
-    const parsed = JSON.parse(text) as CmsContent;
+    const parsed = normalizeCmsContent(JSON.parse(text) as Partial<CmsContent>);
     updateCms(parsed, "CMS import applied.");
   }
 
@@ -1678,6 +1708,7 @@ function AdminPage() {
   const newCount = submissions.filter((item) => item.status === "new").length;
   const sections = [
     ["brand", "Brand & Homepage"],
+    ["brand-rules", "Brand Rules"],
     ["services", "Services"],
     ["projects", "Projects & Impact"],
     ["articles", "Blog"],
@@ -1738,6 +1769,7 @@ function AdminPage() {
           </div>
           <div className="admin-tools">
             {activeSection === "brand" && <BrandEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "brand-rules" && <BrandRulesPanel />}
             {activeSection === "services" && <CollectionEditor title="Services" items={cms.services} onSave={(items) => updateCms({ ...cms, services: items }, "Services saved.")} createItem={() => ({ audience: "Rehabilitation Services", body: "", division: "Rehabilitation Services", featured: false, iconName: "Activity", image: cms.siteImages.hero, published: true, slug: "new-service", summary: "Service summary", title: "New Service" })} renderItem={(item, index, update) => <ServiceFields item={item} update={update} index={index} />} />}
             {activeSection === "projects" && <CollectionEditor title="Projects & Impact" items={cms.projects} onSave={(items) => updateCms({ ...cms, projects: items }, "Projects saved.")} createItem={() => ({ category: "Impact Story", gallery: [], image: cms.siteImages.outreach, location: "Imo State", metric: "Metric pending", published: true, summary: "Project summary", title: "New Project" })} renderItem={(item, index, update) => <ProjectFields item={item} update={update} index={index} />} />}
             {activeSection === "articles" && <CollectionEditor title="Blog Posts" items={cms.articles} onSave={(items) => updateCms({ ...cms, articles: items }, "Blog saved.")} createItem={() => ({ author: "Zahthic Healthcare Solutions", body: "Article body", category: "Health Articles", excerpt: "Article excerpt", image: cms.siteImages.about, published: false, publishedAt: new Date().toISOString().slice(0, 10), readTime: "5 min read", title: "New Article" })} renderItem={(item, index, update) => <ArticleFields item={item} update={update} index={index} />} />}
@@ -1953,22 +1985,116 @@ function RecognitionFields({ item, update }: { item: EditableRecognitionItem; in
   );
 }
 
+function BrandRulesPanel() {
+  const colors = [
+    ["Midnight Teal", "#0C1F1D", "Primary brand dark, headings, dark backgrounds"],
+    ["Lime Sprout", "#98BF2E", "Primary accent, CTAs, icons, active states"],
+    ["Peal Yellow", "#EFC652", "Secondary accent for highlights and dark sections"],
+    ["Obsidian Black", "#0C0E0D", "Deep contrast and dark-mode foundation"],
+    ["Pure White", "#FFFFFF", "Clean brand space and primary light surface"],
+  ];
+  const logoRules = [
+    "Use the approved full logo, sub-brand logo, wordmark, or icon variation only.",
+    "Keep clear space around the logo so nearby text, icons, and navigation do not crowd it.",
+    "Use the white logo on colorful or dark backgrounds.",
+    "Do not recolor, rotate, stretch, compress, fade, or add shadows to the logo.",
+  ];
+  const typographyRules = [
+    "Sora is the primary font for headings, hero text, section titles, and strong brand moments.",
+    "Montserrat is the secondary font for body copy, forms, navigation, labels, and longer reading.",
+    "Use the available brand weights intentionally: lighter weights for supporting copy, bold weights for hierarchy.",
+  ];
+
+  return (
+    <section className="admin-panel brand-rules-panel">
+      <div className="admin-panel-head">
+        <h3>Zahthic brand rules</h3>
+        <small>From the official brand guideline book</small>
+      </div>
+      <div className="brand-rule-grid">
+        <article className="brand-rule-card">
+          <h4>Official palette</h4>
+          <div className="brand-swatch-grid">
+            {colors.map(([name, value, usage]) => (
+              <div className="brand-swatch" key={name}>
+                <span style={{ background: value }} />
+                <strong>{name}</strong>
+                <code>{value}</code>
+                <small>{usage}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="brand-rule-card">
+          <h4>Logo use</h4>
+          <div className="brand-logo-rule">
+            <BrandLogo variant="auto" />
+          </div>
+          <div className="detail-list">
+            {logoRules.map((rule) => <span key={rule}>{rule}</span>)}
+          </div>
+        </article>
+        <article className="brand-rule-card">
+          <h4>Typography</h4>
+          <div className="type-sample">
+            <strong>Sora primary font</strong>
+            <span>Transforming Health. Empowering Lives.</span>
+          </div>
+          <div className="type-sample secondary">
+            <strong>Montserrat secondary font</strong>
+            <span>Use for clear body copy, forms, labels, and helpful content.</span>
+          </div>
+          <div className="detail-list">
+            {typographyRules.map((rule) => <span key={rule}>{rule}</span>)}
+          </div>
+        </article>
+        <article className="brand-rule-card">
+          <h4>Visual pattern and imagery</h4>
+          <div className="brand-pattern-sample" aria-hidden="true" />
+          <p>Use the Zahthic geometric pattern as a controlled brand accent in heroes, footers, section dividers, and official materials. Keep healthcare photos clear, respectful, and human-centered.</p>
+        </article>
+      </div>
+    </section>
+  );
+}
+
 function BrandEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
   const [draft, setDraft] = useState(cms);
   useEffect(() => setDraft(cms), [cms]);
+  function saveDraft() {
+    onSave({ ...draft, brand: { ...draft.brand, supporting: draft.brand.footerMotto } }, "Brand and homepage saved.");
+  }
   return (
     <section className="admin-panel">
       <div className="admin-panel-head">
         <h3>Brand, homepage and key figures</h3>
-        <button className="button primary compact" type="button" onClick={() => onSave(draft, "Brand and homepage saved.")}>Save Changes</button>
+        <button className="button primary compact" type="button" onClick={saveDraft}>Save Changes</button>
       </div>
+      <h4>Homepage Hero</h4>
       <div className="editor-grid">
         <TextField label="Brand name" value={draft.brand.name} onChange={(name) => setDraft({ ...draft, brand: { ...draft.brand, name } })} />
+        <TextField label="Hero eyebrow" value={draft.brand.heroEyebrow} onChange={(heroEyebrow) => setDraft({ ...draft, brand: { ...draft.brand, heroEyebrow } })} />
         <TextField label="Tagline / hero headline" value={draft.brand.tagline} multiline onChange={(tagline) => setDraft({ ...draft, brand: { ...draft.brand, tagline } })} />
-        <TextField label="Supporting headline" value={draft.brand.supporting} onChange={(supporting) => setDraft({ ...draft, brand: { ...draft.brand, supporting } })} />
+        <TextField label="Hero body" value={draft.brand.heroBody} multiline onChange={(heroBody) => setDraft({ ...draft, brand: { ...draft.brand, heroBody } })} />
+        <TextField label="Footer motto" value={draft.brand.footerMotto} onChange={(footerMotto) => setDraft({ ...draft, brand: { ...draft.brand, footerMotto, supporting: footerMotto } })} />
+        <TextField label="SPACE homepage teaser" value={draft.brand.spaceTeaser} multiline onChange={(spaceTeaser) => setDraft({ ...draft, brand: { ...draft.brand, spaceTeaser } })} />
         <TextField label="Location" value={draft.brand.location} onChange={(location) => setDraft({ ...draft, brand: { ...draft.brand, location } })} />
         <TextField label="Instagram" value={draft.brand.instagram} onChange={(instagram) => setDraft({ ...draft, brand: { ...draft.brand, instagram } })} />
         <TextField label="Facebook" value={draft.brand.facebook} onChange={(facebook) => setDraft({ ...draft, brand: { ...draft.brand, facebook } })} />
+      </div>
+      <div className="admin-panel-head subsection-head">
+        <h4>Core Focus Areas</h4>
+        <button className="button secondary compact" type="button" onClick={() => setDraft({ ...draft, coreFocusAreas: [{ description: "Focus area description", iconName: "Sparkles", title: "New Focus Area" }, ...draft.coreFocusAreas] })}>Add Focus Area</button>
+      </div>
+      <div className="editor-list compact-list">
+        {draft.coreFocusAreas.map((area, index) => (
+          <div className="editor-grid" key={`${area.title}-${index}`}>
+            <TextField label="Title" value={area.title} onChange={(title) => setDraft({ ...draft, coreFocusAreas: draft.coreFocusAreas.map((item, itemIndex) => itemIndex === index ? { ...item, title } : item) })} />
+            <SelectField label="Icon" value={area.iconName} options={iconOptions} onChange={(iconName) => setDraft({ ...draft, coreFocusAreas: draft.coreFocusAreas.map((item, itemIndex) => itemIndex === index ? { ...item, iconName } : item) })} />
+            <TextField label="Description" value={area.description} multiline onChange={(description) => setDraft({ ...draft, coreFocusAreas: draft.coreFocusAreas.map((item, itemIndex) => itemIndex === index ? { ...item, description } : item) })} />
+            <button className="button secondary compact" type="button" onClick={() => setDraft({ ...draft, coreFocusAreas: draft.coreFocusAreas.filter((_, itemIndex) => itemIndex !== index) })}>Remove</button>
+          </div>
+        ))}
       </div>
       <h4>Homepage Images</h4>
       <div className="editor-grid">
@@ -1976,13 +2102,17 @@ function BrandEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsConte
           <ImageField key={key} label={key} image={image} onChange={(nextImage) => setDraft({ ...draft, siteImages: { ...draft.siteImages, [key]: nextImage } })} />
         ))}
       </div>
-      <h4>Impact Figures</h4>
+      <div className="admin-panel-head subsection-head">
+        <h4>Impact Figures</h4>
+        <button className="button secondary compact" type="button" onClick={() => setDraft({ ...draft, impactStats: [{ label: "New figure", note: "Short note", value: "0" }, ...draft.impactStats] })}>Add Figure</button>
+      </div>
       <div className="editor-list compact-list">
         {draft.impactStats.map((stat, index) => (
           <div className="editor-grid" key={`${stat.label}-${index}`}>
             <TextField label="Value" value={stat.value} onChange={(value) => setDraft({ ...draft, impactStats: draft.impactStats.map((item, itemIndex) => itemIndex === index ? { ...item, value } : item) })} />
             <TextField label="Label" value={stat.label} onChange={(label) => setDraft({ ...draft, impactStats: draft.impactStats.map((item, itemIndex) => itemIndex === index ? { ...item, label } : item) })} />
             <TextField label="Note" value={stat.note} onChange={(note) => setDraft({ ...draft, impactStats: draft.impactStats.map((item, itemIndex) => itemIndex === index ? { ...item, note } : item) })} />
+            <button className="button secondary compact" type="button" onClick={() => setDraft({ ...draft, impactStats: draft.impactStats.filter((_, itemIndex) => itemIndex !== index) })}>Remove</button>
           </div>
         ))}
       </div>
@@ -1991,7 +2121,7 @@ function BrandEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsConte
 }
 
 function PartnerEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
-  return <CollectionEditor<EditablePartnerCategory> title="Partners" items={cms.partnerCategories} onSave={(partnerCategories) => onSave({ ...cms, partnerCategories }, "Partners saved.")} createItem={() => ({ iconName: "HandHeart", published: true, title: "New Partner", website: "" })} renderItem={(item, _index, update) => (
+  return <CollectionEditor<EditablePartnerCategory> title="Partners" items={cms.partnerCategories} onSave={(partnerCategories) => onSave({ ...cms, partnerCategories }, "Partners saved.")} createItem={() => ({ iconName: "HandHeart", logo: { src: "", alt: "New Partner logo" }, published: true, title: "New Partner", website: "" })} renderItem={(item, _index, update) => (
     <>
       <TextField label="Name / category" value={item.title} onChange={(title) => update({ ...item, title })} />
       <SelectField label="Icon" value={item.iconName} options={iconOptions} onChange={(iconName) => update({ ...item, iconName })} />
