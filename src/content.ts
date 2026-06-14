@@ -133,6 +133,7 @@ export const brand = {
   spaceTeaser: "Spinal Protection and Awareness for Children's Ergonomics (SPACE) is Zahthic's flagship preventive health initiative focused on improving posture, movement habits, and musculoskeletal health in children and adolescents through school-based education, early screening, and community engagement.",
   supporting: "Transforming Health. Empowering Lives.",
   location: "Orlu / Owerri, Imo State, Nigeria",
+  linkedin: "https://www.linkedin.com/company/gumaling/",
   instagram: "https://www.instagram.com/zahthichealthcare?igsh=MXV4Y3pyOG9iaDEwaQ==",
   facebook: "https://facebook.com/Zahthichealthcare",
 };

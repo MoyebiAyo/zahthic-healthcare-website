@@ -7,7 +7,10 @@ import {
   CheckCircle2,
   Clock,
   Download,
+  Facebook,
   HeartHandshake,
+  Instagram,
+  Linkedin,
   Mail,
   Menu,
   Moon,
@@ -469,6 +472,7 @@ function Footer() {
           <BrandLogo variant="dark" />
         </a>
         <p>{cms.brand.footerMotto}</p>
+        <SocialLinks />
       </div>
       <div className="footer-grid">
         <FooterLinks title="Explore" links={[["About", "#/about"], ["Services", "#/services"], ["Impact", "#/impact"], ["Blog", "#/blog"]]} />
@@ -476,6 +480,27 @@ function Footer() {
         <FooterLinks title="Support" links={[["SPACE Project", "#/space"], ["Donate / Support", "#/support"], ["FAQ", "#/faq"]]} />
       </div>
     </footer>
+  );
+}
+
+function SocialLinks() {
+  const { cms } = useCms();
+  const links = [
+    { href: cms.brand.linkedin, label: "LinkedIn", Icon: Linkedin },
+    { href: cms.brand.instagram, label: "Instagram", Icon: Instagram },
+    { href: cms.brand.facebook, label: "Facebook", Icon: Facebook },
+  ].filter((item) => item.href);
+
+  if (!links.length) return null;
+
+  return (
+    <div className="social-links" aria-label="Social media links">
+      {links.map(({ href, label, Icon }) => (
+        <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} title={label}>
+          <Icon size={18} strokeWidth={2.2} aria-hidden="true" />
+        </a>
+      ))}
+    </div>
   );
 }
 
@@ -2182,6 +2207,7 @@ function BrandEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsConte
         <TextField label="Footer motto" value={draft.brand.footerMotto} onChange={(footerMotto) => setDraft({ ...draft, brand: { ...draft.brand, footerMotto, supporting: footerMotto } })} />
         <TextField label="SPACE homepage teaser" value={draft.brand.spaceTeaser} multiline onChange={(spaceTeaser) => setDraft({ ...draft, brand: { ...draft.brand, spaceTeaser } })} />
         <TextField label="Location" value={draft.brand.location} onChange={(location) => setDraft({ ...draft, brand: { ...draft.brand, location } })} />
+        <TextField label="LinkedIn" value={draft.brand.linkedin} onChange={(linkedin) => setDraft({ ...draft, brand: { ...draft.brand, linkedin } })} />
         <TextField label="Instagram" value={draft.brand.instagram} onChange={(instagram) => setDraft({ ...draft, brand: { ...draft.brand, instagram } })} />
         <TextField label="Facebook" value={draft.brand.facebook} onChange={(facebook) => setDraft({ ...draft, brand: { ...draft.brand, facebook } })} />
       </div>
