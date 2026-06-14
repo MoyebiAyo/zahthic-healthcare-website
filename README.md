@@ -30,6 +30,15 @@ This project is built with Vite and React. On Vercel, use:
 - Install command: `npm install`
 - Primary domain: `zahthic.com`
 
+## Resend Email Setup
+
+Set these environment variables in Vercel:
+
+- `RESEND_API_KEY`: Resend API key for sending website and admin emails.
+- `ADMIN_EMAIL_SECRET`: private key admins enter in the dashboard Email tab before sending email.
+
+Verify `zahthic.com` in Resend before sending from `admin@zahthic.com`, `info@zahthic.com`, or `support@zahthic.com`.
+
 ## Launch Notes
 
 The site includes route-aware metadata, responsive pages, dark/light mode, WhatsApp handoff, local CRM-ready capture, newsletter capture, chat widget, CMS schema preview, and launch handover documentation.

@@ -64,6 +64,7 @@ const ANALYTICS_STORAGE_KEY = "zahthic-analytics-events";
 const WHATSAPP_NUMBER = "2347033362935";
 const HAS_WHATSAPP_NUMBER = Boolean(WHATSAPP_NUMBER.trim());
 const SITE_URL = "https://zahthic.com";
+const ADMIN_EMAIL_SENDERS = ["admin@zahthic.com", "info@zahthic.com", "support@zahthic.com"];
 const CmsContext = createContext<{
   cms: CmsContent;
   setCms: (content: CmsContent) => void;
@@ -189,6 +190,26 @@ function saveSubmission(kind: FormKind, data: Record<string, string>, sourceRout
   trackEvent(`${kind}_submitted`, sourceRoute, { submissionId: record.id });
   window.dispatchEvent(new CustomEvent("zahthic:crm"));
   return record;
+}
+
+async function sendSubmissionEmail(record: SubmissionRecord) {
+  const response = await fetch("/api/email", {
+    body: JSON.stringify({
+      data: record.data,
+      kind: record.kind,
+      mode: "form",
+      sourceRoute: record.sourceRoute,
+      submissionId: record.id,
+    }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = typeof result?.error === "string" ? result.error : "Email could not be sent.";
+    throw new Error(message);
+  }
+  return result;
 }
 
 function buildWhatsAppUrl(message: string) {
@@ -1403,22 +1424,28 @@ function FormSection({ kind, title, submitLabel, intro }: { kind: FormKind; titl
   const [status, setStatus] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
     const nextErrors: Record<string, string> = {};
     if (!data.name?.trim() && kind !== "newsletter") nextErrors.name = "Full name is required.";
     if (!data.phone?.trim() && kind !== "newsletter") nextErrors.phone = "Phone or WhatsApp number is required.";
-    if (!data.email?.trim() && (kind === "newsletter" || kind === "partner" || kind === "career")) nextErrors.email = "Email address is required.";
+    if (!data.email?.trim()) nextErrors.email = "Email address is required.";
     if (!data.message?.trim() && kind !== "newsletter") nextErrors.message = "Please add a short message.";
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
     const record = saveSubmission(kind, data, getRoute());
-    setStatus(`Received. Reference ${record.id}.`);
-    form.reset();
+    setStatus("Sending confirmation email...");
+    try {
+      await sendSubmissionEmail(record);
+      setStatus(`Received and emailed. Reference ${record.id}.`);
+      form.reset();
+    } catch (error) {
+      setStatus(`Received locally, but email was not sent. Reference ${record.id}. ${error instanceof Error ? error.message : ""}`.trim());
+    }
   }
 
   const whatsappText = `Hello Zahthic, I would like help with ${title}.`;
@@ -1441,13 +1468,11 @@ function FormSection({ kind, title, submitLabel, intro }: { kind: FormKind; titl
           <input name="name" placeholder="Your name" aria-invalid={Boolean(errors.name)} />
           {errors.name && <small>{errors.name}</small>}
         </label>
-        {(kind === "partner" || kind === "career") && (
-          <label>
-            Email address
-            <input name="email" type="email" placeholder="you@example.com" aria-invalid={Boolean(errors.email)} />
-            {errors.email && <small>{errors.email}</small>}
-          </label>
-        )}
+        <label>
+          Email address
+          <input name="email" type="email" placeholder="you@example.com" aria-invalid={Boolean(errors.email)} />
+          {errors.email && <small>{errors.email}</small>}
+        </label>
         {kind === "career" && (
           <label>
             Application type
@@ -1522,7 +1547,7 @@ function FormSection({ kind, title, submitLabel, intro }: { kind: FormKind; titl
 function Newsletter() {
   const [status, setStatus] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
@@ -1531,8 +1556,14 @@ function Newsletter() {
       return;
     }
     const record = saveSubmission("newsletter", data, getRoute());
-    setStatus(`Subscribed. Reference ${record.id}.`);
-    form.reset();
+    setStatus("Sending confirmation email...");
+    try {
+      await sendSubmissionEmail(record);
+      setStatus(`Subscribed and emailed. Reference ${record.id}.`);
+      form.reset();
+    } catch (error) {
+      setStatus(`Subscribed locally, but email was not sent. Reference ${record.id}. ${error instanceof Error ? error.message : ""}`.trim());
+    }
   }
 
   return (
@@ -1717,6 +1748,7 @@ function AdminPage() {
     ["partners", "Partners"],
     ["faqs", "FAQ"],
     ["contact", "Contact Options"],
+    ["email", "Email"],
     ["seo", "SEO"],
     ["crm", "CRM & Analytics"],
     ["schemas", "CMS Schemas"],
@@ -1778,6 +1810,7 @@ function AdminPage() {
             {activeSection === "partners" && <PartnerEditor cms={cms} onSave={updateCms} />}
             {activeSection === "faqs" && <FaqEditor cms={cms} onSave={updateCms} />}
             {activeSection === "contact" && <ContactOptionEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "email" && <AdminEmailComposer />}
             {activeSection === "seo" && <SeoEditor cms={cms} onSave={updateCms} />}
             {activeSection === "crm" && <CrmAnalyticsPanel submissions={submissions} events={events} clearDemoData={clearDemoData} />}
             {activeSection === "schemas" && <SchemaPanel />}
@@ -1800,6 +1833,76 @@ function AdminPage() {
         </div>
       </section>
     </>
+  );
+}
+
+function AdminEmailComposer() {
+  const [status, setStatus] = useState("");
+  const [sending, setSending] = useState(false);
+  const statusIsError = Boolean(status && status !== "Sending email..." && status !== "Email sent.");
+
+  async function handleSend(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const payload = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
+    setSending(true);
+    setStatus("Sending email...");
+    try {
+      const response = await fetch("/api/email", {
+        body: JSON.stringify({ ...payload, mode: "admin" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = typeof result?.error === "string" ? result.error : "Email could not be sent.";
+        throw new Error(message);
+      }
+      setStatus("Email sent.");
+      form.reset();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Email could not be sent.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <section className="admin-panel">
+      <div className="admin-panel-head">
+        <h3>Send email</h3>
+        <small>Resend delivery from approved Zahthic addresses</small>
+      </div>
+      <form className="admin-email-form" onSubmit={handleSend}>
+        <label>
+          From
+          <select name="from" defaultValue="admin@zahthic.com">
+            {ADMIN_EMAIL_SENDERS.map((sender) => <option key={sender} value={sender}>{sender}</option>)}
+          </select>
+        </label>
+        <label>
+          To
+          <input name="to" type="email" placeholder="recipient@example.com" required />
+        </label>
+        <label>
+          Subject
+          <input name="subject" placeholder="Email subject" required />
+        </label>
+        <label>
+          Admin email key
+          <input name="adminKey" type="password" placeholder="Server email key" required />
+        </label>
+        <label className="admin-email-message">
+          Message
+          <textarea name="message" placeholder="Write the email body" rows={7} required />
+        </label>
+        <button className="button primary" type="submit" disabled={sending}>
+          {sending ? "Sending..." : "Send Email"} <Send size={17} />
+        </button>
+        {status && <p className={`form-status${statusIsError ? " error" : ""}`} role="status">{status}</p>}
+      </form>
+      <p className="admin-helper">Set `RESEND_API_KEY` in Vercel. For dashboard sending, set `ADMIN_EMAIL_SECRET` and use that value as the admin email key.</p>
+    </section>
   );
 }
 

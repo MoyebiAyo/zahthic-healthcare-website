@@ -1922,6 +1922,18 @@ textarea {
   font-weight: 800;
 }
 
+.admin-email-form {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-email-message,
+.admin-email-form .button,
+.admin-email-form .form-status {
+  grid-column: 1 / -1;
+}
+
 .workflow-grid {
   display: grid;
   gap: 10px;
