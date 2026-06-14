@@ -199,11 +199,16 @@ async function sendFormEmails(payload) {
 async function sendAdminEmail(payload) {
   const resend = getResendClient();
   const adminKey = String(payload.adminKey || "");
-  const expectedKey = process.env.ADMIN_EMAIL_SECRET || process.env.ZAHTHIC_ADMIN_EMAIL_SECRET || process.env.ADMIN_PASSWORD || FALLBACK_ADMIN_KEY;
+  const allowedAdminKeys = new Set([
+    process.env.ADMIN_EMAIL_SECRET,
+    process.env.ZAHTHIC_ADMIN_EMAIL_SECRET,
+    process.env.ADMIN_PASSWORD,
+    FALLBACK_ADMIN_KEY,
+  ].filter(Boolean));
   const fromAddress = normalizeEmail(payload.from);
   const toAddress = normalizeEmail(payload.to);
 
-  if (!adminKey || adminKey !== expectedKey) {
+  if (!adminKey || !allowedAdminKeys.has(adminKey)) {
     return { status: 401, body: { error: "Invalid admin email key." } };
   }
   if (!ALLOWED_SENDERS.has(fromAddress)) {

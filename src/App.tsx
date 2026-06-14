@@ -1874,7 +1874,7 @@ function AdminEmailComposer() {
     setStatus("Sending email...");
     try {
       const response = await fetch("/api/email", {
-        body: JSON.stringify({ ...payload, mode: "admin" }),
+        body: JSON.stringify({ ...payload, adminKey: ADMIN_PASSWORD, mode: "admin" }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
@@ -1913,10 +1913,6 @@ function AdminEmailComposer() {
           Subject
           <input name="subject" placeholder="Email subject" required />
         </label>
-        <label>
-          Admin email key
-          <input name="adminKey" type="password" placeholder="Server email key" required />
-        </label>
         <label className="admin-email-message">
           Message
           <textarea name="message" placeholder="Write the email body" rows={7} required />
@@ -1926,7 +1922,7 @@ function AdminEmailComposer() {
         </button>
         {status && <p className={`form-status${statusIsError ? " error" : ""}`} role="status">{status}</p>}
       </form>
-      <p className="admin-helper">Set `RESEND_API_KEY` in Vercel. For dashboard sending, set `ADMIN_EMAIL_SECRET` and use that value as the admin email key.</p>
+      <p className="admin-helper">Set `RESEND_API_KEY` in Vercel. Dashboard email sending is available after admin login.</p>
     </section>
   );
 }
