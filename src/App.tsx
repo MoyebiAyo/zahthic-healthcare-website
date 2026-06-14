@@ -64,10 +64,20 @@ type AnalyticsEvent = {
 
 const CRM_STORAGE_KEY = "zahthic-crm-submissions";
 const ANALYTICS_STORAGE_KEY = "zahthic-analytics-events";
+const ADMIN_EMAIL_HISTORY_KEY = "zahthic-admin-email-history";
 const WHATSAPP_NUMBER = "2347033362935";
 const HAS_WHATSAPP_NUMBER = Boolean(WHATSAPP_NUMBER.trim());
 const SITE_URL = "https://zahthic.com";
 const ADMIN_EMAIL_SENDERS = ["admin@zahthic.com", "info@zahthic.com", "support@zahthic.com"];
+
+type SentEmailRecord = {
+  id: string;
+  from: string;
+  to: string;
+  subject: string;
+  message: string;
+  sentAt: string;
+};
 const CmsContext = createContext<{
   cms: CmsContent;
   setCms: (content: CmsContent) => void;
@@ -1864,17 +1874,28 @@ function AdminPage() {
 function AdminEmailComposer() {
   const [status, setStatus] = useState("");
   const [sending, setSending] = useState(false);
-  const statusIsError = Boolean(status && status !== "Sending email..." && status !== "Email sent.");
+  const [draft, setDraft] = useState({
+    from: "admin@zahthic.com",
+    message: "",
+    subject: "",
+    to: "",
+  });
+  const [history, setHistory] = useState<SentEmailRecord[]>(() => getStoredJson<SentEmailRecord[]>(ADMIN_EMAIL_HISTORY_KEY, []));
+  const statusIsError = Boolean(status && !["Sending email...", "Email sent.", "Email loaded for editing."].includes(status));
+
+  function saveHistory(nextHistory: SentEmailRecord[]) {
+    const trimmed = nextHistory.slice(0, 80);
+    setHistory(trimmed);
+    saveStoredJson(ADMIN_EMAIL_HISTORY_KEY, trimmed);
+  }
 
   async function handleSend(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = event.currentTarget;
-    const payload = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
     setSending(true);
     setStatus("Sending email...");
     try {
       const response = await fetch("/api/email", {
-        body: JSON.stringify({ ...payload, adminKey: ADMIN_PASSWORD, mode: "admin" }),
+        body: JSON.stringify({ ...draft, adminKey: ADMIN_PASSWORD, mode: "admin" }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
@@ -1883,8 +1904,17 @@ function AdminEmailComposer() {
         const message = typeof result?.error === "string" ? result.error : "Email could not be sent.";
         throw new Error(message);
       }
+      const record: SentEmailRecord = {
+        id: typeof result?.id === "string" ? result.id : `email-${Date.now().toString(36)}`,
+        from: draft.from,
+        message: draft.message,
+        sentAt: new Date().toISOString(),
+        subject: draft.subject,
+        to: draft.to,
+      };
+      saveHistory([record, ...history]);
       setStatus("Email sent.");
-      form.reset();
+      setDraft({ from: draft.from, message: "", subject: "", to: "" });
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Email could not be sent.");
     } finally {
@@ -1892,38 +1922,66 @@ function AdminEmailComposer() {
     }
   }
 
+  function reuseEmail(record: SentEmailRecord) {
+    setDraft({
+      from: record.from,
+      message: record.message,
+      subject: record.subject,
+      to: record.to,
+    });
+    setStatus("Email loaded for editing.");
+  }
+
   return (
-    <section className="admin-panel">
-      <div className="admin-panel-head">
-        <h3>Send email</h3>
-        <small>Resend delivery from approved Zahthic addresses</small>
-      </div>
-      <form className="admin-email-form" onSubmit={handleSend}>
-        <label>
-          From
-          <select name="from" defaultValue="admin@zahthic.com">
-            {ADMIN_EMAIL_SENDERS.map((sender) => <option key={sender} value={sender}>{sender}</option>)}
-          </select>
-        </label>
-        <label>
-          To
-          <input name="to" type="email" placeholder="recipient@example.com" required />
-        </label>
-        <label>
-          Subject
-          <input name="subject" placeholder="Email subject" required />
-        </label>
-        <label className="admin-email-message">
-          Message
-          <textarea name="message" placeholder="Write the email body" rows={7} required />
-        </label>
-        <button className="button primary" type="submit" disabled={sending}>
-          {sending ? "Sending..." : "Send Email"} <Send size={17} />
-        </button>
-        {status && <p className={`form-status${statusIsError ? " error" : ""}`} role="status">{status}</p>}
-      </form>
-      <p className="admin-helper">Set `RESEND_API_KEY` in Vercel. Dashboard email sending is available after admin login.</p>
-    </section>
+    <div className="admin-email-stack">
+      <section className="admin-panel">
+        <div className="admin-panel-head">
+          <h3>Send email</h3>
+          <small>Resend delivery from approved Zahthic addresses</small>
+        </div>
+        <form className="admin-email-form" onSubmit={handleSend}>
+          <label>
+            From
+            <select name="from" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })}>
+              {ADMIN_EMAIL_SENDERS.map((sender) => <option key={sender} value={sender}>{sender}</option>)}
+            </select>
+          </label>
+          <label>
+            To
+            <input name="to" type="email" placeholder="recipient@example.com" required value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} />
+          </label>
+          <label>
+            Subject
+            <input name="subject" placeholder="Email subject" required value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} />
+          </label>
+          <label className="admin-email-message">
+            Message
+            <textarea name="message" placeholder="Write the email body" rows={7} required value={draft.message} onChange={(event) => setDraft({ ...draft, message: event.target.value })} />
+          </label>
+          <button className="button primary" type="submit" disabled={sending}>
+            {sending ? "Sending..." : "Send Email"} <Send size={17} />
+          </button>
+          {status && <p className={`form-status${statusIsError ? " error" : ""}`} role="status">{status}</p>}
+        </form>
+        <p className="admin-helper">Set `RESEND_API_KEY` in Vercel. Dashboard email sending is available after admin login.</p>
+      </section>
+      <section className="admin-panel">
+        <div className="admin-panel-head">
+          <h3>Sent email history</h3>
+          {history.length > 0 && <button className="button secondary compact" type="button" onClick={() => saveHistory([])}>Clear History</button>}
+        </div>
+        <div className="admin-table email-history-table">
+          {(history.length ? history : [{ id: "No emails sent yet", from: "", to: "", subject: "Sent emails will appear here.", message: "", sentAt: "" }]).slice(0, 12).map((item) => (
+            <article key={item.id}>
+              <strong>{item.subject}</strong>
+              <span>{item.to || "Waiting for first send"}</span>
+              <small>{item.sentAt ? `${item.from} · ${new Date(item.sentAt).toLocaleString()}` : "Use the form above to send an email."}</small>
+              {item.sentAt && <button className="button secondary compact" type="button" onClick={() => reuseEmail(item)}>Use Again</button>}
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 

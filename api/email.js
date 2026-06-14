@@ -150,11 +150,10 @@ function renderFillerHtml({ data, kind, submissionId }) {
   });
 }
 
-function renderAdminHtml({ message, sender }) {
+function renderAdminHtml({ message }) {
   return renderEmailShell({
     children: `
       <h1 style="color:${BRAND.teal};font-size:28px;line-height:1.25;margin:0 0 12px;">Message from Zahthic</h1>
-      <p style="color:#48615d;font-size:14px;line-height:1.7;margin:0 0 22px;">Sent by ${escapeHtml(sender)} through the Zahthic admin dashboard.</p>
       <div style="background:#f9fbf5;border:1px solid #dbe7cf;border-radius:14px;color:${BRAND.teal};font-size:15px;line-height:1.8;padding:20px;white-space:pre-wrap;">${escapeHtml(message)}</div>
       ${renderButton(SITE_URL, "Visit Zahthic Website")}
     `,
@@ -226,7 +225,7 @@ async function sendAdminEmail(payload) {
     to: [toAddress],
     replyTo: fromAddress,
     subject: String(payload.subject).trim(),
-    html: renderAdminHtml({ message: payload.message, sender: fromAddress }),
+    html: renderAdminHtml({ message: payload.message }),
   });
 
   if (error) return { status: 400, body: { error } };

@@ -1922,6 +1922,11 @@ textarea {
   font-weight: 800;
 }
 
+.admin-email-stack {
+  display: grid;
+  gap: 18px;
+}
+
 .admin-email-form {
   display: grid;
   gap: 14px;
@@ -1932,6 +1937,10 @@ textarea {
 .admin-email-form .button,
 .admin-email-form .form-status {
   grid-column: 1 / -1;
+}
+
+.email-history-table article {
+  grid-template-columns: minmax(160px, 0.9fr) minmax(150px, 0.7fr) minmax(0, 1fr) auto;
 }
 
 .workflow-grid {
