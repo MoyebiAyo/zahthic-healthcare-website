@@ -135,7 +135,7 @@ export const brand = {
   location: "Orlu / Owerri, Imo State, Nigeria",
   linkedin: "https://www.linkedin.com/company/gumaling/",
   instagram: "https://www.instagram.com/zahthichealthcare?igsh=MXV4Y3pyOG9iaDEwaQ==",
-  facebook: "https://facebook.com/Zahthichealthcare",
+  facebook: "https://www.facebook.com/share/1Cn2SNowdq/",
 };
 
 export const coreFocusAreas = [
