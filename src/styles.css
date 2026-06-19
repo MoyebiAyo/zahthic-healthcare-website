@@ -643,6 +643,10 @@ p {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.testimonial-grid {
+  align-items: stretch;
+}
+
 .service-card,
 .blog-card,
 .project-card,
@@ -1507,6 +1511,54 @@ details:hover {
   display: block;
   font-weight: 800;
   margin-top: 12px;
+}
+
+.testimonial-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.testimonial-person {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.testimonial-person img {
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  flex: 0 0 68px;
+  height: 68px;
+  object-fit: cover;
+  width: 68px;
+}
+
+.testimonial-person span {
+  color: var(--lime);
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.testimonial-person strong,
+.testimonial-person small {
+  margin: 0;
+}
+
+.sample-badge {
+  align-self: flex-start;
+  background: rgba(239, 198, 82, 0.18);
+  border: 1px solid rgba(239, 198, 82, 0.45);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+  padding: 7px 10px;
 }
 
 .faq-list {

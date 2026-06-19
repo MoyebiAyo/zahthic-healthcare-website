@@ -34,7 +34,7 @@ import {
   resetCmsContent,
   writeCmsContent,
 } from "./cms/runtime";
-import type { CmsContent, EditableArticle, EditableMediaItem, EditablePartnerCategory, EditableProject, EditableRecognitionItem, EditableService } from "./cms/runtime";
+import type { CmsContent, EditableArticle, EditableMediaItem, EditablePartnerCategory, EditableProject, EditableRecognitionItem, EditableService, EditableTestimonial } from "./cms/runtime";
 import logoDark from "./assets/zahthic-logo-2.svg";
 import logoLight from "./assets/zahthic-logo-1.svg";
 import spaceLogoDarkText from "./assets/space-logo-dark-text.png";
@@ -130,6 +130,10 @@ const serviceDivisions = [
 
 function servicesForDivision(services: EditableService[], division: string) {
   return services.filter((service) => service.published && service.division === division);
+}
+
+function sortTestimonials(testimonials: EditableTestimonial[]) {
+  return [...testimonials].sort((first, second) => first.displayOrder - second.displayOrder || first.name.localeCompare(second.name));
 }
 
 function getRoute() {
@@ -612,6 +616,7 @@ function HomePage() {
       <ImpactBand />
       <SpaceFeature />
       <ServicesPreview />
+      <TestimonialsPreview />
       <PartnerPreview />
       <BlogPreview />
       <ProjectFeature />
@@ -799,6 +804,52 @@ function BlogCard({ article }: { article: EditableArticle }) {
       <a href={`#/blog/${slugify(article.title)}`} className="text-link">
         Read article <ArrowRight size={15} />
       </a>
+    </article>
+  );
+}
+
+function TestimonialsPreview() {
+  const { cms } = useCms();
+  const featuredTestimonials = sortTestimonials(cms.testimonials)
+    .filter((testimonial) => testimonial.published && testimonial.featured)
+    .slice(0, 3);
+
+  return (
+    <section className="content-section testimonials-section">
+      <SectionHeader
+        eyebrow="Patient & Partner Experiences"
+        title="Stories from people and partners connected to Zahthic's work."
+        body="Featured testimonials can be updated from the admin dashboard as approved patient, professional, organization, and partner endorsements are added."
+      />
+      <div className="card-grid testimonial-grid">
+        {featuredTestimonials.map((testimonial) => (
+          <TestimonialCard key={`${testimonial.name}-${testimonial.displayOrder}`} testimonial={testimonial} />
+        ))}
+      </div>
+      <a className="button secondary section-action" href="#/testimonials">
+        View All Testimonials <ArrowRight size={18} />
+      </a>
+    </section>
+  );
+}
+
+function TestimonialCard({ testimonial }: { testimonial: EditableTestimonial }) {
+  return (
+    <article className="testimonial-card">
+      <div className="testimonial-person">
+        <img src={testimonial.photo.src} alt={testimonial.photo.alt || testimonial.name} loading="lazy" decoding="async" />
+        <div>
+          <span>{testimonial.category}</span>
+          <strong>{testimonial.name}</strong>
+          <small>{testimonial.role}</small>
+        </div>
+      </div>
+      <p>"{testimonial.quote}"</p>
+      {testimonial.videoLink && (
+        <a className="text-link" href={testimonial.videoLink} rel="noreferrer" target="_blank">
+          Watch video <ArrowRight size={15} />
+        </a>
+      )}
     </article>
   );
 }
@@ -1368,16 +1419,15 @@ function FaqPage() {
 }
 
 function TestimonialsPage() {
+  const { cms } = useCms();
+  const testimonials = sortTestimonials(cms.testimonials).filter((testimonial) => testimonial.published);
+
   return (
     <>
-      <PageHero eyebrow="Testimonials" title="Real stories of care, recovery, learning, and community impact." body="This section is ready for approved testimonials from patients, families, communities, partners, volunteers, and collaborators." />
-      <section className="content-section card-grid">
-        {["Patient story placeholder", "Community beneficiary placeholder", "Partner testimonial placeholder"].map((item) => (
-          <article className="testimonial-card" key={item}>
-            <p>"Zahthic helped us understand the journey and take the next step with confidence."</p>
-            <strong>{item}</strong>
-            <small>Permission pending</small>
-          </article>
+      <PageHero eyebrow="Testimonials" title="Real stories of care, recovery, learning, and community impact." body="Approved testimonials from patients, healthcare professionals, organizations, partners, volunteers, and collaborators." />
+      <section className="content-section card-grid testimonial-grid">
+        {testimonials.map((testimonial) => (
+          <TestimonialCard key={`${testimonial.name}-${testimonial.displayOrder}`} testimonial={testimonial} />
         ))}
       </section>
     </>
@@ -1781,6 +1831,7 @@ function AdminPage() {
     ["media", "Media"],
     ["recognition", "Recognition"],
     ["partners", "Partners"],
+    ["testimonials", "Testimonials"],
     ["faqs", "FAQ"],
     ["contact", "Contact Options"],
     ["email", "Email"],
@@ -1843,6 +1894,7 @@ function AdminPage() {
             {activeSection === "media" && <CollectionEditor title="Media Library" items={cms.mediaItems} onSave={(items) => updateCms({ ...cms, mediaItems: items }, "Media saved.")} createItem={() => ({ description: "Media description", fileUrl: "", image: cms.siteImages.outreach, published: true, title: "New Media Item", type: "Photo" })} renderItem={(item, index, update) => <MediaFields item={item} update={update} index={index} />} />}
             {activeSection === "recognition" && <CollectionEditor title="Recognition" items={cms.recognitionItems} onSave={(items) => updateCms({ ...cms, recognitionItems: items }, "Recognition saved.")} createItem={() => ({ category: "Spotlight", image: cms.siteImages.partners, published: true, summary: "Recognition summary", title: "New Recognition Item" })} renderItem={(item, index, update) => <RecognitionFields item={item} update={update} index={index} />} />}
             {activeSection === "partners" && <PartnerEditor cms={cms} onSave={updateCms} />}
+            {activeSection === "testimonials" && <TestimonialEditor cms={cms} onSave={updateCms} />}
             {activeSection === "faqs" && <FaqEditor cms={cms} onSave={updateCms} />}
             {activeSection === "contact" && <ContactOptionEditor cms={cms} onSave={updateCms} />}
             {activeSection === "email" && <AdminEmailComposer />}
@@ -2044,7 +2096,7 @@ function ImageField({ label, image, onChange }: { label: string; image: ImageAss
   );
 }
 
-function CollectionEditor<T extends { title?: string; published?: boolean }>({
+function CollectionEditor<T extends { title?: string; name?: string; published?: boolean }>({
   createItem,
   items,
   onSave,
@@ -2076,9 +2128,9 @@ function CollectionEditor<T extends { title?: string; published?: boolean }>({
       </div>
       <div className="editor-list">
         {draft.map((item, index) => (
-          <details className="editor-item" key={`${item.title || "item"}-${index}`} open={index === 0}>
+          <details className="editor-item" key={`${item.title || item.name || "item"}-${index}`} open={index === 0}>
             <summary>
-              <span>{item.title || `Item ${index + 1}`}</span>
+              <span>{item.title || item.name || `Item ${index + 1}`}</span>
               <small>{item.published === false ? "Draft" : "Published"}</small>
             </summary>
             <div className="editor-grid">
@@ -2162,6 +2214,38 @@ function RecognitionFields({ item, update }: { item: EditableRecognitionItem; in
       <TextField label="Category" value={item.category} onChange={(category) => update({ ...item, category })} />
       <TextField label="Summary" value={item.summary} multiline onChange={(summary) => update({ ...item, summary })} />
       <ImageField label="Image" image={item.image} onChange={(image) => update({ ...item, image })} />
+      <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
+    </>
+  );
+}
+
+function TestimonialEditor({ cms, onSave }: { cms: CmsContent; onSave: (next: CmsContent, message?: string) => void }) {
+  return <CollectionEditor<EditableTestimonial> title="Testimonials" items={cms.testimonials} onSave={(testimonials) => onSave({ ...cms, testimonials }, "Testimonials saved.")} createItem={() => ({
+    category: "Patient",
+    displayOrder: cms.testimonials.length + 1,
+    featured: false,
+    name: "New Testimonial",
+    photo: { src: cms.siteImages.about.src, alt: "Generic professional profile image" },
+    published: false,
+    quote: "Testimonial text",
+    role: "Role or organization",
+    sample: true,
+    videoLink: "",
+  })} renderItem={(item, _index, update) => <TestimonialFields item={item} update={update} />} />;
+}
+
+function TestimonialFields({ item, update }: { item: EditableTestimonial; update: (next: EditableTestimonial) => void }) {
+  return (
+    <>
+      <TextField label="Name" value={item.name} onChange={(name) => update({ ...item, name })} />
+      <TextField label="Role / subtitle" value={item.role} onChange={(role) => update({ ...item, role })} />
+      <SelectField label="Category" value={item.category} options={["Patient", "Healthcare Professional", "Organization", "Partner Organization", "Family", "Community", "Corporate", "Volunteer"]} onChange={(category) => update({ ...item, category })} />
+      <TextField label="Testimonial text" value={item.quote} multiline onChange={(quote) => update({ ...item, quote })} />
+      <TextField label="Video link" type="url" value={item.videoLink} onChange={(videoLink) => update({ ...item, videoLink })} />
+      <TextField label="Display order" type="number" value={String(item.displayOrder)} onChange={(displayOrder) => update({ ...item, displayOrder: Number(displayOrder) || 0 })} />
+      <ImageField label="Photo" image={item.photo} onChange={(photo) => update({ ...item, photo })} />
+      <ToggleField label="Sample Testimonial – To Be Replaced" checked={item.sample} onChange={(sample) => update({ ...item, sample })} />
+      <ToggleField label="Feature on homepage" checked={item.featured} onChange={(featured) => update({ ...item, featured })} />
       <ToggleField label="Published" checked={item.published} onChange={(published) => update({ ...item, published })} />
     </>
   );

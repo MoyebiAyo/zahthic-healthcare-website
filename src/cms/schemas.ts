@@ -86,12 +86,17 @@ export const cmsSchemas: CmsSchema[] = [
   {
     name: "testimonial",
     label: "Testimonial",
-    description: "Approved testimonials from patients, families, communities, partners, volunteers, and corporate clients.",
+    description: "Approved testimonials from patients, healthcare professionals, organizations, partners, volunteers, and collaborators.",
     fields: [
-      { name: "quote", label: "Quote", type: "textarea", required: true },
-      { name: "name", label: "Name", type: "text" },
-      { name: "category", label: "Category", type: "select", options: ["Patient", "Family", "Community", "Corporate", "Partner", "Volunteer"] },
-      { name: "permission", label: "Permission To Publish", type: "boolean", required: true },
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "role", label: "Role / Subtitle", type: "text" },
+      { name: "photo", label: "Photo", type: "image" },
+      { name: "category", label: "Category", type: "select", options: ["Patient", "Healthcare Professional", "Organization", "Partner Organization", "Family", "Community", "Corporate", "Volunteer"] },
+      { name: "quote", label: "Testimonial Text", type: "textarea", required: true },
+      { name: "videoLink", label: "Video Link", type: "url" },
+      { name: "displayOrder", label: "Display Order", type: "number" },
+      { name: "featured", label: "Feature on Homepage", type: "boolean" },
+      { name: "published", label: "Permission To Publish", type: "boolean", required: true },
     ],
   },
   {

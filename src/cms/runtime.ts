@@ -100,6 +100,19 @@ export type EditablePartnerCategory = {
   published: boolean;
 };
 
+export type EditableTestimonial = {
+  name: string;
+  role: string;
+  category: string;
+  quote: string;
+  photo: ImageAsset;
+  videoLink: string;
+  displayOrder: number;
+  sample: boolean;
+  featured: boolean;
+  published: boolean;
+};
+
 export type EditableFaq = {
   question: string;
   answer: string;
@@ -131,6 +144,7 @@ export type CmsContent = {
   mediaItems: EditableMediaItem[];
   recognitionItems: EditableRecognitionItem[];
   partnerCategories: EditablePartnerCategory[];
+  testimonials: EditableTestimonial[];
   faqs: EditableFaq[];
   contactOptions: EditableContactOption[];
   seoRecords: SeoRecord[];
@@ -162,6 +176,54 @@ export const iconOptions = Object.keys(iconRegistry);
 
 const partnerIconNames = ["Landmark", "HandHeart", "Stethoscope", "FileText", "BriefcaseBusiness", "Sparkles"];
 const contactIconNames = ["CalendarCheck", "HandHeart", "MapPin"];
+
+const defaultTestimonials: EditableTestimonial[] = [
+  {
+    category: "Patient",
+    displayOrder: 1,
+    featured: true,
+    name: "Mrs. Ada Okafor",
+    photo: {
+      src: siteImages.about.src,
+      alt: "Generic professional portrait placeholder for Mrs. Ada Okafor",
+    },
+    published: true,
+    quote: "The rehabilitation support I received helped me regain confidence in my daily activities. The team was professional, supportive, and focused on helping me achieve meaningful progress.",
+    role: "Stroke Rehabilitation Patient",
+    sample: true,
+    videoLink: "",
+  },
+  {
+    category: "Healthcare Professional",
+    displayOrder: 2,
+    featured: true,
+    name: "Dr. Michael Eze",
+    photo: {
+      src: siteImages.partners.src,
+      alt: "Generic professional portrait placeholder for Dr. Michael Eze",
+    },
+    published: true,
+    quote: "Zahthic Healthcare Solutions demonstrates a strong commitment to patient-centered rehabilitation and collaborative healthcare delivery. Their approach reflects professionalism and quality care.",
+    role: "Medical Practitioner",
+    sample: true,
+    videoLink: "",
+  },
+  {
+    category: "Partner Organization",
+    displayOrder: 3,
+    featured: true,
+    name: "Grace Community Initiative",
+    photo: {
+      src: siteImages.outreach.src,
+      alt: "Generic professional organization image placeholder for Grace Community Initiative",
+    },
+    published: true,
+    quote: "Our collaboration with Zahthic Healthcare Solutions contributed to a successful community health engagement. Their team brought professionalism, organization, and a genuine commitment to impact.",
+    role: "Community Health Partner",
+    sample: true,
+    videoLink: "",
+  },
+];
 
 const rehabilitationDescription = "Our rehabilitation services are designed to support recovery, restore function, reduce pain, improve mobility, and help individuals regain independence and participation in daily life.";
 const workplaceDescription = "We provide workplace health solutions that promote employee wellbeing, reduce preventable injuries, improve productivity, and encourage healthier workplace practices.";
@@ -397,6 +459,7 @@ export function getDefaultCmsContent(): CmsContent {
       title: partner.title,
       website: "",
     })),
+    testimonials: defaultTestimonials.map((testimonial) => ({ ...testimonial, photo: { ...testimonial.photo } })),
     faqs: faqs.map((faq) => ({ ...faq, published: true })),
     contactOptions: contactOptions.map((option, index) => ({
       iconName: contactIconNames[index] || "Sparkles",
@@ -482,6 +545,7 @@ function mergeCmsContent(saved: Partial<CmsContent>): CmsContent {
     mediaItems: saved.mediaItems?.length ? saved.mediaItems : fallback.mediaItems,
     recognitionItems: saved.recognitionItems?.length ? saved.recognitionItems : fallback.recognitionItems,
     partnerCategories: saved.partnerCategories?.length ? saved.partnerCategories : fallback.partnerCategories,
+    testimonials: saved.testimonials?.length ? saved.testimonials : fallback.testimonials,
     faqs: saved.faqs?.length ? saved.faqs : fallback.faqs,
     contactOptions: saved.contactOptions?.length ? saved.contactOptions : fallback.contactOptions,
     seoRecords: saved.seoRecords?.length ? saved.seoRecords : fallback.seoRecords,
