@@ -1912,8 +1912,9 @@ textarea {
 }
 
 .admin-login-wrap {
-  max-width: 620px;
+  max-width: calc(620px + (var(--rail) * 2));
   padding: clamp(32px, 5vw, 64px) var(--rail);
+  width: 100%;
 }
 
 .admin-login-card {
